@@ -29,16 +29,5 @@
     }
   },
   "Friday": {
-  },
-  "Saturday": {
-  },
-  "Sunday": {
-      "Chase": {
-      "start_hour": 0,
-      "start_minute": 0,
-      "end_hour": 23,
-      "end_minute": 59,
-      "location": "Discord"
-    }
   }
 }
