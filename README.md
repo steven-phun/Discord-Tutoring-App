@@ -8,7 +8,7 @@ This is a discord bot developed in Python and Discord.py Rewrite that provides t
 # Requirements 
 - discord [documentation](https://discordpy.readthedocs.io) ```pip install -U discord.py```
 - python-dotenv [documentation](https://pypi.org/project/python-dotenv) ```pip install -U python-dotenv```
-- Requests [documentation](https://requests.readthedocs.io/en/master) ```pip install requests```
+- requests [documentation](https://requests.readthedocs.io/en/master) ```pip install requests```
 - cryptography [documentation](https://cryptography.io/en/latest/index.html) ```pip install cryptography```
 - gspread [documentation](https://gspread.readthedocs.io/en/latest) ```pip install gspread```
 
@@ -18,17 +18,17 @@ This is a discord bot developed in Python and Discord.py Rewrite that provides t
 COMMAND | VARIABLE | DESCRIPTION
 | :---: | :---: | :---:
 .tutee hi | ----- | generate the student's pre-filled tutoring sign-in sheet link. 
-.tutee hours | [course] | displays the [course] tutoring location, hours, and tutor.
+.tutee hours | [course] | display the [course] tutoring location, hours, and tutor.
 .tutee join | ----- | add the student to the queue. 
 .tutee leave | ----- | remove the student from the queue. 
-.tutee que | ----- | displays every student and their position in the queue.
+.tutee que | ----- | display every student and their position in the queue.
 .tutee set | [full name][student id][course code][program degree] | store the student's information. 
 
 - Features that are used by the Tutors during a tutoring session.
 
 COMMAND | VARIABLE | DESCRIPTION
 | :---: | :---: | :---:
-.tutor next | ----- | gets the next tutee in tutor's waitlist. 
+.tutor next | ----- | get the next tutee in tutor's waitlist. 
 
 # General Features
 - Features that can be used by other bots. 
@@ -38,10 +38,10 @@ COMMAND | VARIABLE | DESCRIPTION
 COMMAND | VARIABLE | DESCRIPTION
 | :---: | :---: | :---:
 .oops | ----- | removes the last bot command made by the user.
-.cal | [expression] | displays the results of [expression].
-.esv | [passage] | displays given [passage].
-.weather | [city] | displays the current weather for [city].
-.help | [category] | displays the [category] help message.
+.cal | [expression] | display the results of [expression].
+.esv | [passage] | display given [passage].
+.weather | [city] | display the current weather for [city].
+.help | [category] | display the [category] help message.
 
 # CBU Features
 - Features that are specific to California Baptist University. 
@@ -49,4 +49,4 @@ COMMAND | VARIABLE | DESCRIPTION
 COMMAND | VARIABLE | DESCRIPTION
 | :---: | :---: | :---:
 .chapel | [week number] | display speakers and dates for [week number].
-.java | [class] | displays the most commonly used EGR222 java methods for given [class].
+.java | [class] | display the most commonly used EGR222 java methods for given [class].
