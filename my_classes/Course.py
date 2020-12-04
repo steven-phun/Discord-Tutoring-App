@@ -11,10 +11,12 @@ class Course:
         self.message = None  # stores the message sent in the bot announcement channel.
 
     async def hours(self):
-        """display the location, tutoring hours in a 12 hours format, and tutor's name for given class course.
+        """get the location, tutoring hours (12 hours format), and tutor's name for given course.
 
-        converts tutoring hours from a given course code from a .json file to a str to be printed.
-        tutoring hours are stored in a local .json file in a 24 hour time format.
+        converts tutoring hours from a .json file to a str to be printed.
+        tutoring hours are stored in a local .json file
+            in a 24 hour time format.
+            for others to modify the hours without touching the code.
 
         Parameters
         ----------
@@ -25,8 +27,7 @@ class Course:
 
         # store schedule in an array.
         array_schedule = []
-        days_of_week = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-        for day in days_of_week:
+        for day in tutoring_hours:
             array_schedule.append('')
             array_schedule.append(f'__**{day}**__')
 
@@ -49,6 +50,41 @@ class Course:
                 array_schedule.append(f'**{tutor_start_time} - {tutor_end_time}** [{location}] - *{tutor}*')
 
         return '\n'.join(array_schedule)
+
+    def add(self, student):
+        """add the student to the tutoring queue.
+
+        student will not be added if:
+            they are already in the queue.
+
+        Parameters
+        ----------
+        :param Student student: the student object being added to the queue.
+        """
+        # do nothing if student is already in queue.
+        for tutee in self.queue:
+            if student.discord_id == tutee.discord_id:
+                return
+
+        # add student in queue.
+        self.queue.append(student)
+
+    def remove(self, student):
+        """remove the student from the tutoring queue.
+
+        display a 'not in queue' error message:
+            if the student is currently not in their respective queue.
+
+        Parameters
+        ----------
+        :param Student student: the student object in queue to removed.
+        """
+        # remove student from queue.
+        try:
+            self.queue.remove(student)
+        # display error message.
+        except ValueError:
+            pass
 
     def queue_embed(self, description=''):
         """generate a default queue embed.

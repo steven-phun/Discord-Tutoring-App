@@ -172,10 +172,14 @@ async def join_queue(ctx, sessions, accounts):
         return await send_embed(ctx, embed)
 
     # validate student submitted their sign-in sheet.
+    # todo add validation
 
     # add student to the queue.
     course = sessions[student.course_code[-3:]]
-    await add_student(ctx, course, student)
+    course.add(student)
+
+    # display updated queue.
+    await display_queue(ctx, course)
 
 
 async def remove_student_from_queue(ctx, sessions, accounts):
@@ -194,11 +198,12 @@ async def remove_student_from_queue(ctx, sessions, accounts):
         embed = get_help_tutee_embed()
         return await send_embed(ctx, embed)
 
-    # student's respective course object.
-    course = sessions[student.course_code[-3:]]
-
     # remove student from queue.
-    await remove_student(ctx, course, student)
+    course = sessions[student.course_code[-3:]]
+    course.remove(student)
+
+    # display updated queue.
+    await display_queue(ctx, course)
 
 
 async def sign_in(ctx, student_accounts):
@@ -300,51 +305,6 @@ async def get_queue(ctx, sessions, accounts):
     # get queue.
     course = sessions[student.course_code[-3:]]
     await display_queue(ctx, course, announcement=False)
-
-
-async def remove_student(ctx, course, student):
-    """remove the student from the tutoring queue.
-
-    display a 'not in queue' error message:
-        if the student is currently not in their respective queue.
-
-    Parameters
-    ----------
-    :param Context ctx: the current Context.
-    :param Course course: the course object.
-    :param Student student: the object that represents the student being added to the waitlist.
-    """
-    # remove student from queue.
-    try:
-        course.queue.remove(student)
-        await display_queue(ctx, course)
-    # display error message.
-    except ValueError:
-        embed = course.queue_embed('*you are not in a queue.*')
-        await send_embed(ctx, embed)
-
-
-async def add_student(ctx, course, student):
-    """add the student to the tutoring queue.
-
-    student will not be added if:
-        they are already in the queue.
-
-    Parameters
-    ----------
-    :param Context ctx: the current Context.
-    :param Course course: the course object.
-    :param Student student: the object that represents the student being added to the queue.
-    """
-    for tutee in course.queue:
-        if student.discord_id == tutee.discord_id:
-            return
-
-    # add student in queue.
-    course.queue.append(student)
-
-    # display updated queue.
-    await display_queue(ctx, course)
 
 
 async def send_position_in_queue(discord_id, course, position):
