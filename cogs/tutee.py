@@ -1,10 +1,9 @@
 import discord
 import os
 from discord.ext import commands
-from cogs.bot import send_embed, to_member, send_courses_reaction_message, tutoring_sessions, tutoring_accounts
+from cogs.bot import bot, send_embed, to_member, send_courses_reaction_message, tutoring_sessions, tutoring_accounts
 from my_classes.Course import Course
-from my_classes.Student import Student
-from my_classes.Reaction import Reaction
+from my_classes.Student import Student, to_student
 
 
 class Tutee(commands.Cog):
@@ -23,6 +22,9 @@ class Tutee(commands.Cog):
         :param str arg5: the fifth argument.
         :param str arg6: the sixth argument, default 'Trad'
         """
+        if len(tutoring_accounts) <= 0:
+            await store_accounts_from_discord_channel(tutoring_accounts)
+
         if arg is None:
             return
 
@@ -30,7 +32,7 @@ class Tutee(commands.Cog):
             return await sign_in(ctx, tutoring_accounts)
 
         if arg.lower() == 'hours':
-            return await print_tutoring_hours(ctx, tutoring_sessions.get(arg2))
+            return await display_tutoring_hours(ctx, tutoring_sessions.get(arg2))
 
         if arg.lower() == 'join':
             return await join_queue(ctx, tutoring_sessions, tutoring_accounts)
@@ -39,7 +41,7 @@ class Tutee(commands.Cog):
             return await remove_student_from_queue(ctx, tutoring_sessions, tutoring_accounts)
 
         if arg.lower() == 'que':
-            return await print_current_queue(ctx, tutoring_sessions, tutoring_accounts)
+            return await get_queue(ctx, tutoring_sessions, tutoring_accounts)
 
         if arg.lower() == 'set':
             return await setup_account(ctx, tutoring_accounts, arg2, arg3, arg4, arg5, arg6)
@@ -129,7 +131,7 @@ async def edit_nickname(ctx, full_name):
     await send_embed(ctx, embed)
 
 
-async def print_tutoring_hours(ctx, course):
+async def display_tutoring_hours(ctx, course):
     """display tutoring hours of a given course.
 
     display a 'tutoring hours not available':
@@ -143,28 +145,7 @@ async def print_tutoring_hours(ctx, course):
     if course is None:
         return await display_error_msg(ctx)
 
-    await course.hours(ctx)
-
-
-async def print_current_queue(ctx, sessions, accounts):
-    """display the student's current respective queue.
-
-    Parameters
-    ----------
-    :param Context ctx: the current Context.
-    :param Optional[Course] sessions: the dictionary that is storing every available tutoring session.
-    :param dict accounts: the dictionary that is storing every student accounts.
-    """
-    student = accounts.get(ctx.author.id)
-
-    # validate if student has set up a bot tutoring bot account.
-    if student is None:
-        embed = get_help_tutee_embed()
-        return await send_embed(ctx, embed)
-
-    # display current queue.
-    course = sessions[student.course_code[-3:]]
-    await course.print(ctx, announcement=False)
+    await course.hours()
 
 
 async def join_queue(ctx, sessions, accounts):
@@ -194,7 +175,7 @@ async def join_queue(ctx, sessions, accounts):
 
     # add student to the queue.
     course = sessions[student.course_code[-3:]]
-    await course.add(ctx, student)
+    await add_student(ctx, course, student)
 
 
 async def remove_student_from_queue(ctx, sessions, accounts):
@@ -217,7 +198,7 @@ async def remove_student_from_queue(ctx, sessions, accounts):
     course = sessions[student.course_code[-3:]]
 
     # remove student from queue.
-    await course.remove(ctx, student)
+    await remove_student(ctx, course, student)
 
 
 async def sign_in(ctx, student_accounts):
@@ -252,6 +233,180 @@ async def sign_in(ctx, student_accounts):
     await send_embed(ctx, embed)
 
 
+async def display_queue(ctx, course, direct_msg=False, announcement=True):
+    """display the current queue.
+
+    DISCORD CHANNEL NEEDED: a bot announcement channel.
+        bot will display an updated queue:
+            everytime the queue has been modify.
+        to keep the queue updated the bot will remove the queue message.
+    the bot will display a 'user has not sign-in' error message.
+        if the current student being helped ( queue[0] ) did not submit their sign-in form.
+    a 'queue is empty' error message will be displayed:
+        if there are no students in the queue.
+    (optional) bot will send a direct message to each student their current position in the queue.
+
+   Parameters
+    ----------
+    :param Context ctx: the current Context.
+    :param Course course: the course queue's object to display.
+    :param boolean direct_msg: if True direct message each student their position in the queue,
+                               otherwise do nothing.
+   :param boolean announcement: if True queue should be printed in the bot announcement channel,
+                                otherwise do nothing.
+    """
+    embed = course.queue_embed()
+
+    # display queue.
+    for index, student in enumerate(course.queue, start=1):
+        mention_student = f'<@!{student.discord_id}>'
+        embed.description += f'#{index} {mention_student} - {student.times_helped}\n'
+
+        # send student their position in queue.
+        if direct_msg:
+            await send_position_in_queue(student.discord_id, course, index)
+
+    # display error message.
+    if len(course.queue) == 0:
+        embed.description = '*queue is empty.*'
+
+    if announcement:
+        # remove old queue message made by bot.
+        if course.message is not None:
+            await course.message.delete()
+
+        # display updated queue in bot announcement channel.
+        course.message = await send_embed(embed=embed, channel=int(os.getenv("BOT_ANNOUNCEMENT_CHANNEL_ID")))
+
+    await send_embed(ctx, embed)
+
+
+async def get_queue(ctx, sessions, accounts):
+    """display the student's current respective queue.
+
+    Parameters
+    ----------
+    :param Context ctx: the current Context.
+    :param Optional[Course] sessions: the dictionary that is storing every available tutoring session.
+    :param dict accounts: the dictionary that is storing every student accounts.
+    """
+    student = accounts.get(ctx.author.id)
+
+    # validate if student has set up a bot tutoring bot account.
+    if student is None:
+        embed = get_help_tutee_embed()
+        return await send_embed(ctx, embed)
+
+    # get queue.
+    course = sessions[student.course_code[-3:]]
+    await display_queue(ctx, course, announcement=False)
+
+
+async def remove_student(ctx, course, student):
+    """remove the student from the tutoring queue.
+
+    display a 'not in queue' error message:
+        if the student is currently not in their respective queue.
+
+    Parameters
+    ----------
+    :param Context ctx: the current Context.
+    :param Course course: the course object.
+    :param Student student: the object that represents the student being added to the waitlist.
+    """
+    # remove student from queue.
+    try:
+        course.queue.remove(student)
+        await display_queue(ctx, course)
+    # display error message.
+    except ValueError:
+        embed = course.queue_embed('*you are not in a queue.*')
+        await send_embed(ctx, embed)
+
+
+async def add_student(ctx, course, student):
+    """add the student to the tutoring queue.
+
+    student will not be added if:
+        they are already in the queue.
+
+    Parameters
+    ----------
+    :param Context ctx: the current Context.
+    :param Course course: the course object.
+    :param Student student: the object that represents the student being added to the queue.
+    """
+    for tutee in course.queue:
+        if student.discord_id == tutee.discord_id:
+            return
+
+    # add student in queue.
+    course.queue.append(student)
+
+    # display updated queue.
+    await display_queue(ctx, course)
+
+
+async def send_position_in_queue(discord_id, course, position):
+    """DM given student their current position in the queue.
+        since student in position 1 is with the tutor
+            a position update is not needed.
+        students in position 2 will have a custom message.
+            while the other positions will get the default message.
+
+    Parameters
+    ----------
+    :param int discord_id: the student's discord id.
+    :param Course course: the course object.
+    :param int position: the student's position in the queue.
+    """
+    if position == 1:
+        return
+
+    embed = course.queue_embed(f'#{position} in the queue')
+
+    if position == 2:
+        embed.description = 'you are next!'  # custom message.
+
+    await send_embed(user=discord_id, embed=embed)
+
+
+async def store_accounts_from_discord_channel(dictionary):
+    """read then store each student accounts from a discord channel as an object to given dictionary.
+
+    DISCORD REQUIREMENT:
+        read_message_history permission.
+    WARNING:
+        the discord channel that is storing the student accounts should not allows others to modify or add content to
+            because decrypting any text that is not in encrypted format will throw an error.
+        DO NOT add this function to @event on_ready
+            because the bot cannot read the contents on the message before going online.
+    this function is called when the student's account is empty
+        to represent the accounts being initialize every time the bot goes online for the first time.
+    to not cause an infinite loop
+        because this function will be called  when the array storing the student accounts len is 0.
+        when the student account is truly empty the bot will append a dummy value increasing the array's length.
+            the dummy value will be ignored when initializing the accounts.
+    deleting the message that contains the student info
+        is the same as removing the student account from a database.
+    the messages being read are embed messages.
+    a dictionary is used to store the objects:
+        key=student's discord id, value=student object
+
+    Parameters
+    ----------
+    :param dict dictionary: the dictionary to store the student objects.
+    """
+    # gets student account from designed discord channel.
+    channel = bot.get_channel(int(os.getenv("STUDENT_ACCOUNTS_CHANNEL_ID")))
+    history = await channel.history(oldest_first=True).flatten()
+
+    # get student accounts.
+    for msg in history:
+        student = to_student(msg.embeds[0].description)  # todo convert method to class?
+        dictionary[student.discord_id] = student  # add student accounts to dictionary.
+
+
 async def display_error_msg(ctx):
     """display invalid course code.
 
@@ -277,6 +432,7 @@ def get_accounts_embed(description=''):
 def get_help_tutee_embed():
     """display a help message for the tutee command."""
     return get_accounts_embed('`.help tutee` - for help to set up an account.')
+
 
 # connect this cog to bot.
 def setup(bot):

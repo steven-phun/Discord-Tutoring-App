@@ -8,7 +8,6 @@ from pathlib import Path
 from my_classes.Course import Course
 from my_classes.Reaction import Reaction
 from my_classes.Role import Role
-from my_classes.Student import to_student
 
 
 ######################
@@ -118,7 +117,7 @@ async def notify_devs_when_ready():
                 embed = discord.Embed(description='i am online!')
                 try:
                     await send_embed(embed=embed, user=user.id)
-                except:
+                except:  # todo edit bare except.
                     f'{user} has message from non-friends disabled.'
 
 
@@ -236,44 +235,6 @@ def generate_bot_client():
     return commands.Bot(command_prefix=prefix, help_command=None, intents=intents)
 
 
-async def get_accounts_from_discord_channel():
-    """read then store each student accounts from a given channel as an object to a dictionary.
-
-    DISCORD REQUIREMENT:
-        read_message_history permission.
-    WARNING:
-        the discord channel that is storing the student accounts should not allows others to modify or add content to
-            because decrypting any text that is not in encrypted format will throw an error.
-        DO NOT add this function to @event on_ready
-            because the bot cannot read the contents on the message before going online.
-    this function is called when the student's account is empty
-        to represent the accounts being initialize every time the bot goes online for the first time.
-    to not cause an infinite loop
-        because this function will be called  when the array storing the student accounts len is 0.
-        when the student account is truly empty the bot will append a dummy value increasing the array's length.
-            the dummy value will be ignored when initializing the accounts.
-    deleting the message that contains the student info
-        is the same as removing the student account from a database.
-    the messages being read are embed messages.
-    a dictionary is used to store the objects:
-        key=student's discord id, value=student object
-
-    :return: a dictionary of student object that represents a student in tutoring.
-    """
-    accounts = {}
-
-    # gets student account from designed discord channel.
-    channel = bot.get_channel(int(os.getenv("STUDENT_ACCOUNTS_CHANNEL_ID")))
-    history = await channel.history(oldest_first=True).flatten()
-
-    # get student accounts.
-    for msg in history:
-        student = to_student(msg.embeds[0].description)
-        accounts[student.discord_id] = student
-
-    return accounts
-
-
 def initialize_sessions():
     """initialize and store every available class course to their tutoring sessions object.
 
@@ -300,7 +261,7 @@ bot = generate_bot_client()  # an instance of the discord bot.
 
 # tutee and tutor fields.
 tutoring_sessions = initialize_sessions()  # a dictionary of every available tutoring session.
-tutoring_accounts = get_accounts_from_discord_channel()  # a dictionary of student objects.
+tutoring_accounts = {}  # a dictionary of student objects.
 
 # oops commands fields.
 msg_history = {}  # keeps track of the Bot's past messages to delete.
