@@ -1,0 +1,25 @@
+{
+  "int": {
+    "Math.abs(int)": "absolute value.",
+    "Math.ceil(int)": "rounds up.",
+    "Math.floor(int)": "rounds down.",
+    "Math.log10(int)": "logarithm, base 10.",
+    "Math.max(int, int)": "larger of the two.",
+    "Math.min(int, int)": "smaller of the two.",
+    "Math.pow(int base, int exp)": "base to the exp power.",
+    "Math.round(int)": "nearest whole number.",
+    "Math.sqrt(int)": "square root.",
+    "Math.sin(int)": "sine of an angle in radians.",
+    "Math.cos(int)": "cosine of an angle in radians.",
+    "Math.tan(int)": "tangent of an angle in radians.",
+    "Math.toDegrees(int)": "convert radians to degrees.",
+    "Math.toRadians(int)": "convert degrees to radians."
+  },
+  "double": {
+    "Math.random()": "returns a double between 0 and 1."
+  },
+  "Constant": {
+    "Math.E": "returns 2.7182818...",
+    "Math.PI": "returns 3.1415926..."
+  }
+}

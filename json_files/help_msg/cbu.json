@@ -1,0 +1,16 @@
+{
+  "Chapel Schedule": {
+    "chapel 9": "show chapel schedule for week 9.",
+    "chapel": "same as above for all weeks."
+  },
+  "Java Methods": {
+    "java list": "show List interface methods in Java.",
+    "java queue": "same as above for Queue interface class.",
+    "java array": "show Array methods in Java.",
+    "java map": "same as above for Map().",
+    "java math": "same as above for Math class.",
+    "java scanner": "same as above for Scanner().",
+    "java string": "same as above for String class."
+  }
+}
+

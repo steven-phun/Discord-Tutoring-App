@@ -1,0 +1,18 @@
+{
+  "EGR222": {
+    "emoji": "1️⃣",
+    "course": "Software Engineering"
+  },
+  "EGR227": {
+    "emoji": "2️⃣",
+    "course": "Data Structures"
+  },
+  "CSC312": {
+    "emoji": "3️⃣",
+    "course": "Algorithms"
+  },
+  "EGR329": {
+    "emoji": "4️⃣",
+    "course": "Computer Architecture"
+  }
+}

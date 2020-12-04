@@ -1,0 +1,26 @@
+{
+  "Undo Command": {
+    "oops": "delete the last bot command made by you."
+  },
+  "ESV Bible": {
+    "esv 1john 5:1-2": "show 1 john 5:1-2 passage.",
+    "esv 1jn5.1-2": "same as above."
+  },
+  "Calculator": {
+    "cal x+y": "for sum.",
+    "cal x-y": "for difference.",
+    "cal x*y": "for product.",
+    "cal x/y": "for quotient.",
+    "cal x%y": "for remainder.",
+    "cal x**y": "for power."
+  },
+  "Weather": {
+    "weather los+angeles 90015 US imperial": "show the local weather for Los Angeles in fahrenheit.",
+    "weather los+angeles 90015": "same as above.",
+    "weather los+angeles": "same as above, but may be ambiguous."
+  },
+  "Help": {
+    "help": "show this help message.",
+    "help category": "show the help message for that category."
+  }
+}

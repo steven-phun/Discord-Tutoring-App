@@ -1,0 +1,13 @@
+{
+  "Cogs": {
+    "dev load app-name": "load the app's cog.",
+    "dev unload app-name": "unload the app's cog.",
+    "dev reload app-name": "reload the app's cog."
+  },
+  "Applications": {
+    "dev app": "display all available applications."
+  },
+  "Help": {
+    "dev help": "show this help message."
+  }
+}

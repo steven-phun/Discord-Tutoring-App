@@ -1,0 +1,98 @@
+{
+  "Week 1": {
+    "Aug.25": {
+      "day_of_week": "Tuesday",
+      "speaker": "Damon Horton"
+    }
+  },
+  "Week 2": {
+    "Sept.1": {
+      "day_of_week": "Tuesday",
+      "speaker": "Albert Tate"
+    },
+    "Sept.3": {
+      "day_of_week": "Thursday",
+      "speaker": "Greg Laurie"
+    }
+  },
+  "Week 3": {
+    "Sept.8": {
+      "day_of_week": "Tuesday",
+      "speaker": "Matt Brown"
+    }
+  },
+  "Week 4": {
+    "Sept.15": {
+      "day_of_week": "Tuesday",
+      "speaker": "Epiphany Week"
+    },
+    "Sept.17": {
+      "day_of_week": "Thursday",
+      "speaker": "Epiphany Week"
+    }
+  },
+  "Week 5": {
+    "Sept.22": {
+      "day_of_week": "Tuesday",
+      "speaker": "Ronald Ellis"
+    }
+  },
+  "Week 6": {
+    "Sept.29": {
+      "day_of_week": "Tuesday",
+      "speaker": "Brian Zunigha"
+    },
+    "Oct.1": {
+      "day_of_week": "Thursday",
+      "speaker": "Jeff Mooney"
+    }
+  },
+  "Week 7": {
+    "Oct.6": {
+      "day_of_week": "Tuesday",
+      "speaker": "Ricky Jenkins"
+    }
+  },
+  "Week 8": {
+    "Oct.13": {
+      "day_of_week": "Tuesday",
+      "speaker": "The Bible and Voting"
+    },
+    "Oct.15": {
+      "day_of_week": "Thursday",
+      "speaker": "Christmas in October"
+    }
+  },
+  "Week 9": {
+    "Oct.20": {
+      "day_of_week": "Tuesday",
+      "speaker": "Heiden Ratner"
+    },
+    "Oct.22": {
+      "day_of_week": "Thursday",
+      "speaker": "Noe Garcia"
+    }
+  },
+  "Week 10": {
+    "Oct.27": {
+      "day_of_week": "Tuesday",
+      "speaker": "Daniel Bishop"
+    }
+  },
+  "Week 11": {
+    "Nov.3": {
+      "day_of_week": "Tuesday",
+      "speaker": "Jeff Iorg"
+    },
+    "Nov.5": {
+      "day_of_week": "Thursday",
+      "speaker": "Goodie Goodloe"
+    }
+  },
+    "Week 12": {
+    "Nov.10": {
+      "day_of_week": "Tuesday",
+      "speaker": "Jacaob Ravenscraft"
+    }
+  }
+}

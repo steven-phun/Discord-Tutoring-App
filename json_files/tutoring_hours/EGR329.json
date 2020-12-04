@@ -1,0 +1,30 @@
+{
+  "Monday": {
+  },
+  "Tuesday": {
+    "Chase": {
+      "start_hour": 16,
+      "start_minute": 0,
+      "end_hour": 17,
+      "end_minute": 15,
+      "location": "Discord"
+    }
+  },
+  "Wednesday": {
+  },
+  "Thursday": {
+    "Chase": {
+      "start_hour": 16,
+      "start_minute": 0,
+      "end_hour": 17,
+      "end_minute": 15,
+      "location": "Discord"
+    }
+  },
+  "Friday": {
+  },
+  "Saturday": {
+  },
+  "Sunday": {
+  }
+}

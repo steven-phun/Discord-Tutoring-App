@@ -1,0 +1,28 @@
+{
+  "Type Parameters:": {
+    "E": "the type of elements in this list."
+  },
+  "Void": {
+    "add(int index, E element)" :"appends the specified element to the end of this list (optional operation).",
+    "clear()": "removes all of the elements from this list (optional operation).",
+    "remove(Object object)": "removes the first occurrence of the specified element from this list, if it is present (optional operation)."
+  },
+  "boolean": {
+    "contains(Object object)": "returns true if this list contains the specified element.",
+    "equals(Object object)": "Compares the specified object with this list for equality.",
+    "isEmpty()": "returns true if this list contains no elements."
+  },
+  "E": {
+    "get(int index)": "returns the element at the specified position in this list.",
+    "remove(int index)": "removes the element at the specified position in this list (optional operation).",
+    "set(int index, E element)": "replaces the element at the specified position in this list with the specified element (optional operation)."
+  },
+  "int": {
+    "indexOf(Object object)": "returns the index of the first occurrence of the specified element in this list, or -1 if this list does not contain the element.",
+    "lastIndexOf(Object object)": "returns the index of the last occurrence of the specified element in this list, or -1 if this list does not contain the element.",
+    "size()": "returns the number of elements in this list."
+  },
+  "Object[]": {
+    "toArray()": "returns an array containing all of the elements in this list in proper sequence (from first to last element)."
+  }
+}

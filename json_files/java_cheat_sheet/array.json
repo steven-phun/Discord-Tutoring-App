@@ -1,0 +1,12 @@
+{
+  "Void": {
+    "fill(Object[] array, Object val)": "assigns the specified Object reference to each element of the specified array of Objects.",
+    "sort(Object[] array)": "sorts the specified array of objects into ascending order, according to the natural ordering of its elements."
+  },
+  "boolean": {
+    "equals(Object[] array1, Object[] array2)": "returns true if the two specified arrays of Objects are equal to one another."
+  },
+  "String": {
+    "toString(Object[] array)": "returns a string representation of the contents of the specified array."
+  }
+}

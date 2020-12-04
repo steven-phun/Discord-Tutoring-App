@@ -1,0 +1,18 @@
+{
+  "int": {
+    "nextInt()": "finds and returns the next int token from the user."
+  },
+  "double": {
+    "nextDouble()": "finds and returns the next double token from the user."
+  },
+  "String": {
+    "next()": "finds and returns the next complete token from the user.",
+    "nextLine()": "returns the next line from the user."
+  },
+  "boolean": {
+    "hasNext()": "true if there is a next token.",
+    "hasNextInt()": "true if there is a next int token.",
+    "hasNextDouble()": "true if there is a next double token.",
+    "hasNextLine()": "true if the there is a next line to find."
+  }
+}

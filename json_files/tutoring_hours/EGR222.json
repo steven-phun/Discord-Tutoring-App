@@ -1,0 +1,58 @@
+{
+  "Monday": {
+    "Steven": {
+      "start_hour": 20,
+      "start_minute": 0,
+      "end_hour": 22,
+      "end_minute": 0,
+      "location": "Discord"
+    }
+  },
+  "Tuesday": {
+    "Chris": {
+      "start_hour": 16,
+      "start_minute": 0,
+      "end_hour": 18,
+      "end_minute": 0,
+      "location": "Discord"
+    }
+  },
+  "Wednesday": {
+    "Andrew": {
+      "start_hour": 17,
+      "start_minute": 30,
+      "end_hour": 19,
+      "end_minute": 30,
+      "location": "Discord"
+    }
+  },
+  "Thursday": {
+    "Chris": {
+      "start_hour": 16,
+      "start_minute": 0,
+      "end_hour": 18,
+      "end_minute": 0,
+      "location": "Discord"
+    },
+    "Andrew": {
+      "start_hour": 20,
+      "start_minute": 0,
+      "end_hour": 22,
+      "end_minute": 0,
+      "location": "Discord"
+    }
+  },
+  "Friday": {
+    "Steven": {
+      "start_hour": 20,
+      "start_minute": 0,
+      "end_hour": 22,
+      "end_minute": 0,
+      "location": "Discord"
+    }
+  },
+  "Saturday": {
+  },
+  "Sunday": {
+  }
+}

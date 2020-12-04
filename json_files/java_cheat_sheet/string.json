@@ -1,0 +1,29 @@
+{
+  "char": {
+    "charAt(int)": "returns the char value at the specified index."
+  },
+  "int": {
+    "compareToIgnoreCase(String)": "compares two strings lexicographically., ignoring case differences.",
+    "indexOf(String, int)": "returns the index of the first occurrence of String starting at int.",
+    "lastIndexOf(String, int)": "returns the index of the last occurrence of the String, searching backward from int.",
+    "length()": "returns the number of characters in this string."
+  },
+  "String": {
+    "concat(String)": "concatenates String to the end.",
+    "replaceAll(String, String)": "replaces all occurrences of the first String with the second.",
+    "substring(int, int)": "returns a new string from the first int to second.",
+    "toLowerCase()": "converts all of the characters to lower case.",
+    "toUpperCase()": "same as above, but to upper case.",
+    "trim()": "returns a copy of the string, with leading and trailing whitespace omitted."
+  },
+  "String[]": {
+    "split(String)": "returns an array of strings computed by splitting String."
+  },
+  "boolean": {
+    "contains(String)": "returns true if this contains String.",
+    "equalsIgnoreCase(String)": "returns true if this and String contain the same characters, ignoring case considerations.",
+    "isEmpty()": "returns true if length() is 0.",
+    "startsWith(String)": "returns true if this contains String characters at the start.",
+    "endsWith(String)": "same as above but at the end."
+  }
+}

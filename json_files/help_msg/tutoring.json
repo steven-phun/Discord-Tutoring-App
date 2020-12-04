@@ -1,0 +1,25 @@
+{
+  "Tutoring": {
+    "tutee set james bond 007007 222": "will setup an account with james bond as the student name, 007007 as the student id, 222 as the class section",
+    "tutee hi": "will get your sign-in url and add you to the waitlist",
+    "tutee hi robbie": "same as above, but overrides tutor's name with robbie",
+    "tutee bye": "will remove you from the waitlist",
+    "tutee wl 222": "show the waitlist for egr222",
+    "tutee 222": "show the tutoring hours for egr222",
+    "tutee room @student1 ... @studentN": "makes a private room and invite everyone you mention",
+    "tutee": "*commands with 222 can be replaced with 227 or 312*"
+  },
+  "Tutors": {
+    "tutor start 222": "set your tutoring session to egr222",
+    "tutor next": "get the next student in the waitlist",
+    "tutor cancel": "cancel getting the next student",
+    "tutor wl": "show your tutoring waitlist",
+    "tutor move 1 3": "move the student in position 1 to position 3 in the waitlist",
+    "tutor swap 1 3": "swaps the students in position 1 and position 3 in the waitlist",
+    "tutor kick 3": "removes the student in position 3 from the waitlist",
+    "tutor remove 3": "same as above",
+    "tutor clear": "removes all students in your waitlist",
+    "tutor end": "set your tutoring session to None",
+    "tutor": "*commands with 222 can be replaced with 227 or 312*"
+  }
+}

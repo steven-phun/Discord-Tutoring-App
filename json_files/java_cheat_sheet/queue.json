@@ -1,0 +1,15 @@
+{
+  "Type Parameters:": {
+    "E": "the type of elements held in this collection"
+  },
+  "E": {
+    "element()": "retrieves, but does not remove, the head of this queue.",
+    "peek()": "retrieves, but does not remove, the head of this queue, or returns null if this queue is empty.",
+    "poll()": "retrieves and removes the head of this queue, or returns null if this queue is empty.",
+    "remove()": "retrieves and removes the head of this queue."
+  },
+  "boolean": {
+    "add(E element)": "inserts the specified element into this queue if it is possible to do so immediately without violating capacity restrictions, returning true upon success and throwing an IllegalStateException if no space is currently available.",
+    "offer(E element)": "inserts the specified element into this queue if it is possible to do so immediately without violating capacity restrictions."
+  }
+}

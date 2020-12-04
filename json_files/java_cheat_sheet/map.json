@@ -1,0 +1,20 @@
+{
+  "Type Parameters:": {
+    "K": "the type of keys maintained by this map.",
+    "V": "the type of mapped values."
+  },
+  "Methods": {
+    "clear()": "removes all of the mappings from this map.",
+    "containsKey(Object key)": "returns true if this map contains key.",
+    "containsValue(Object value)": "returns true if this map contains value.",
+    "entrySet()": "returns a Set view of the mappings contained in this map.",
+    "forEach(BiConsumer<? super K, ? super V> action)": "performs the given action for each entry in this map until all entries have been processed.",
+    "isEmpty()": "returns true if this map contains no key-value mappings.",
+    "keySet()": "returns a Set view of the keys contained in this map.",
+    "put(K key, V value)": "add the key, value pair to this map.",
+    "remove(Object key)": "removes key from this map.",
+    "replace(K key, V value)": "replace the current value of key with value.",
+    "size()": "returns the number of key-value mappings in this map.",
+    "values": "return a collection view of the values contained in this map."
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "Monday": {
+    "Nick": {
+      "start_hour": 17,
+      "start_minute": 30,
+      "end_hour": 19,
+      "end_minute": 30,
+      "location": "Discord"
+    }
+  },
+  "Tuesday": {
+  },
+  "Wednesday": {
+    "Chase": {
+      "start_hour": 20,
+      "start_minute": 0,
+      "end_hour": 22,
+      "end_minute": 0,
+      "location": "Discord"
+    }
+  },
+  "Thursday": {
+    "Abanoub": {
+      "start_hour": 17,
+      "start_minute": 0,
+      "end_hour": 19,
+      "end_minute": 0,
+      "location": "Discord"
+    }
+  },
+  "Friday": {
+  },
+  "Saturday": {
+  },
+  "Sunday": {
+      "Chase": {
+      "start_hour": 0,
+      "start_minute": 0,
+      "end_hour": 23,
+      "end_minute": 59,
+      "location": "Discord"
+    }
+  }
+}
