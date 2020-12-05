@@ -106,6 +106,7 @@ class Student:
 
         :return: a string that represents a discord mention syntax.
         """
+        return f'<@!{self.discord_id}>'
 
 
 def to_student(student_info):
