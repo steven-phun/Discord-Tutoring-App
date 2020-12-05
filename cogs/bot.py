@@ -37,6 +37,7 @@ async def send_embed(ctx=None, embed=None, user=None, channel=None):
     :param discord.embeds. embed: the embed message.
     :param int user: the user's discord id.
     :param int channel: the discord channel id.
+    :return: the discord.Embed sent.
     """
     # set embed title to bot's name by default.
     if len(embed.title) == 0:
@@ -65,7 +66,7 @@ async def send_embed(ctx=None, embed=None, user=None, channel=None):
         return await bot.get_user(user).send(embed=embed)
     if channel is not None:
         return await bot.get_channel(channel).send(embed=embed)
-    await ctx.channel.send(embed=embed)
+    return await ctx.channel.send(embed=embed)
 
 
 def json_to_dict(file_path):
