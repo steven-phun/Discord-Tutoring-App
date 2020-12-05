@@ -78,7 +78,7 @@ class Student:
         :return: True if the student has submitted their sign-in sheet, otherwise False.
         """
         # get authentication and authorization from google sheet credentials file.
-        credentials = gspread.service_account(filename='json_files/google_sheet/credentials.json')
+        credentials = gspread.service_account(filename='credentials/google_sheet.json')
 
         # get sign-in sheet.
         sheet = credentials.open_by_key(os.getenv("GOOGLE_SHEET_KEY")).get_worksheet(1)
