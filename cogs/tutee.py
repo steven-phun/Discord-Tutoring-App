@@ -1,9 +1,9 @@
 import discord
 import os
 from discord.ext import commands
-from cogs.bot import bot, send_embed, to_member, send_courses_reaction_message, tutoring_sessions, tutoring_accounts
+from cogs.bot import send_embed, to_member, send_courses_reaction_message, tutoring_sessions, tutoring_accounts
 from my_classes.Course import Course
-from my_classes.Student import Student, to_student
+from my_classes.Student import Student
 
 
 class Tutee(commands.Cog):
@@ -22,9 +22,6 @@ class Tutee(commands.Cog):
         :param str arg5: the fifth argument.
         :param str arg6: the sixth argument, default 'Trad'
         """
-        if len(tutoring_accounts) <= 0:
-            await store_accounts_from_discord_channel(tutoring_accounts)
-
         if arg is None:
             return
 
@@ -42,6 +39,9 @@ class Tutee(commands.Cog):
 
         if arg.lower() == 'que':
             return await get_queue(ctx, tutoring_sessions, tutoring_accounts)
+
+        if arg.lower() == 'room':
+            return await generate_private_voice_channel()
 
         if arg.lower() == 'set':
             return await setup_account(ctx, tutoring_accounts, arg2, arg3, arg4, arg5, arg6)
@@ -361,40 +361,67 @@ async def send_position_in_queue(discord_id, course, position):
     await send_embed(user=discord_id, embed=embed)
 
 
-async def store_accounts_from_discord_channel(dictionary):
-    """read then store each student accounts from a discord channel as an object to given dictionary.
+async def generate_private_voice_channel(ctx, other_members):
+    """generate a private discord voice channel and send invites to all mentioned members.
 
-    DISCORD REQUIREMENT:
-        read_message_history permission.
-    WARNING:
-        the discord channel that is storing the student accounts should not allows others to modify or add content to
-            because decrypting any text that is not in encrypted format will throw an error.
-        DO NOT add this function to @event on_ready
-            because the bot cannot read the contents on the message before going online.
-    this function is called when the student's account is empty
-        to represent the accounts being initialize every time the bot goes online for the first time.
-    to not cause an infinite loop
-        because this function will be called  when the array storing the student accounts len is 0.
-        when the student account is truly empty the bot will append a dummy value increasing the array's length.
-            the dummy value will be ignored when initializing the accounts.
-    deleting the message that contains the student info
-        is the same as removing the student account from a database.
-    the messages being read are embed messages.
-    a dictionary is used to store the objects:
-        key=student's discord id, value=student object
+    admin permissions will be granted to a member for this room.
+        by default the permission will be granted to the user who triggered the command.
+        if the user leaves the room:
+            then the ownership will be transferred to member that has been in the room the longest.
+            if there are no members to transfer, then the bot will remove the room from the server.
+    the bot will automatically move the user that triggered this command to newly generated room.
+    the bot will send the link as a direct message to join the voice channel:
+        if the user that triggered this command is not in a voice channel
+            because the bot cannot force members to join a voice channel, it can only move members.
+        all other mentioned members.
+    to prevent spamming this command:
+        the rooms will be saved in a dictionary (key = room-id, value = member's-discord-id).
+    display 'room already created' error message if the author tries to created more than one room.
 
     Parameters
     ----------
-    :param dict dictionary: the dictionary to store the student objects.
+    :param Context ctx: the current Context.
+    :param List other_members: a list of members that were mentioned.
     """
-    # gets student account from designed discord channel.
-    channel = bot.get_channel(int(os.getenv("STUDENT_ACCOUNTS_CHANNEL_ID")))
-    history = await channel.history(oldest_first=True).flatten()
-
-    # get student accounts.
-    for msg in history:
-        student = to_student(msg.embeds[0].description)  # todo convert method to class?
-        dictionary[student.discord_id] = student  # add student accounts to dictionary.
+    # server = bot.get_guild(int(os.getenv("SERVER_ID")))
+    # author = server.get_member(ctx.author.id)
+    #
+    # # display 'room already created' error message.
+    # if author.id in private_rooms.values():
+    #     embed = discord.Embed(description='You already own a room.')
+    #     return await send_embed(ctx, embed)
+    #
+    # private_room_category = list(filter(lambda x: x.id == int(os.getenv("PRIVATE_ROOM_CATEGORY")), server.categories))[
+    #     0]
+    # created_room = await private_room_category.create_voice_channel(f'Private Room: {author}')
+    # await created_room.set_permissions(server.default_role, manage_permissions=False, connect=False, view_channel=False,
+    #                                    stream=True, move_members=False)
+    # invite = await created_room.create_invite()
+    # other_members.append(author.id)
+    # for member in other_members:
+    #     member = re.sub(r'\D', '', str(member))
+    #     if member:
+    #         try:
+    #             member = server.get_member(int(member))
+    #             await make_member_admin_of_room(member, created_room)
+    #
+    #             # send other mentioned users a DM link to the private room.
+    #             if member != author and member != bot.user:
+    #                 embed = discord.Embed(description=f'<@!{author.id}> has created a private room and invited you')
+    #                 await send_embed(embed=embed, user=member.id)
+    #                 await bot.get_user(member.id).send(invite)
+    #         except discord.errors.InvalidArgument:
+    #             print(f'passed invalid member id: {member}')
+    #
+    # # author is not in voice channel.
+    # if author.voice is None:
+    #     # direct message author an invite link.
+    #     await ctx.author.send(f'Here is a link to your private room:\n {invite}')
+    # else:
+    #     await author.move_to(created_room)
+    #
+    # # add author's room to a dictionary.
+    # private_rooms[created_room.id] = author.id
 
 
 async def display_error_msg(ctx):

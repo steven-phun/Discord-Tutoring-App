@@ -9,10 +9,12 @@ from my_classes.Course import Course
 from my_classes.Reaction import Reaction
 from my_classes.Role import Role
 
-
 ######################
 #  GLOBAL FUNCTIONS  #
 ######################
+from my_classes.Student import to_student
+
+
 async def send_embed(ctx=None, embed=None, user=None, channel=None):
     """send an embed message to a designated channel.
 
@@ -218,6 +220,11 @@ def store_last_bot_msg(message):
             msg_history[user_discord_id] = {channel_id: [message]}
 
 
+async def give_admin_permissions(member, channel):
+    await channel.set_permissions(member, manage_permissions=True, connect=True,
+                                  view_channel=True, stream=True, move_members=True, speak=True)
+
+
 ########################
 #  INSTANCE FUNCTIONS  #
 ########################
@@ -253,6 +260,42 @@ def initialize_sessions():
     return sessions
 
 
+async def initialize_accounts(dictionary):
+    """read then store each student accounts from a discord channel as an object to given dictionary.
+
+    DISCORD REQUIREMENT:
+        read_message_history permission.
+    WARNING:
+        the discord channel that is storing the student accounts should not allows others to modify or add content to
+            because decrypting any text that is not in encrypted format will throw an error.
+        DO NOT add this function to @event on_ready
+            because the bot cannot read the contents on the message before going online.
+    this function is called when the student's account is empty
+        to represent the accounts being initialize every time the bot goes online for the first time.
+    to not cause an infinite loop
+        because this function will be called  when the array storing the student accounts len is 0.
+        when the student account is truly empty the bot will append a dummy value increasing the array's length.
+            the dummy value will be ignored when initializing the accounts.
+    deleting the message that contains the student info
+        is the same as removing the student account from a database.
+    the messages being read are embed messages.
+    a dictionary is used to store the objects:
+        key=student's discord id, value=student object
+
+    Parameters
+    ----------
+    :param dict dictionary: the dictionary to store the student objects.
+    """
+    # gets student account from designed discord channel.
+    channel = bot.get_channel(int(os.getenv("STUDENT_ACCOUNTS_CHANNEL_ID")))
+    history = await channel.history(oldest_first=True).flatten()
+
+    # get student accounts.
+    for msg in history:
+        student = to_student(msg.embeds[0].description)  # todo convert method to class?
+        dictionary[student.discord_id] = student  # add student accounts to dictionary.
+
+
 ######################
 #  GLOBAL INSTANCES  #
 ######################
@@ -263,6 +306,7 @@ bot = generate_bot_client()  # an instance of the discord bot.
 # tutee and tutor fields.
 tutoring_sessions = initialize_sessions()  # a dictionary of every available tutoring session.
 tutoring_accounts = {}  # a dictionary of student objects.
+private_rooms = {}  # a dictionary of generated private voice channel rooms.
 
 # oops commands fields.
 msg_history = {}  # keeps track of the Bot's past messages to delete.
@@ -270,15 +314,15 @@ user_discord_id = 'discord_id'  # stores the discord id of the last user that tr
 channel_id = 'channel'  # stores the discord channel id the bot message was sent.
 
 
-############
-#  EVENTS  #
-############
+################
+#  BOT EVENTS  #
+################
 @bot.event
 async def on_ready():
-    """executes these functions when the client is done preparing the data received from Discord.
-    """
-    await notify_devs_when_ready()
+    """executes these functions when the client is done preparing the data received from Discord."""
+    await initialize_accounts(tutoring_accounts)  # bot needs to be ready before fetching messages.
     await Role(bot).add()
+    await notify_devs_when_ready()
 
 
 @bot.event
@@ -309,6 +353,19 @@ async def on_message(message):
     # this code will override default process commands
     # and allow custom generated commands to trigger.
     await bot.process_commands(message)
+
+
+@bot.event
+async def on_voice_state_update(member, before, after):
+    if after.channel and after.channel in private_rooms.keys():
+        await give_admin_permissions(member, after.channel)
+    if before.channel and before.channel != after.channel and before.channel.id in private_rooms.keys():
+        channel = before.channel
+        if not channel.members:
+            private_rooms.pop(channel.id)
+            await channel.delete()
+        else:
+            private_rooms[channel.id] = channel.members[0].id
 
 
 @bot.event
