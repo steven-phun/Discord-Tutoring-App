@@ -35,7 +35,7 @@ class Tutee(commands.Cog):
             return await display_tutoring_hours(ctx, tutoring_sessions.get(arg2))
 
         if arg.lower() == 'join':
-            return await join_queue(ctx, tutoring_sessions, tutoring_accounts)
+            return await add_student_to_queue(ctx, tutoring_sessions, tutoring_accounts)
 
         if arg.lower() == 'leave':
             return await remove_student_from_queue(ctx, tutoring_sessions, tutoring_accounts)
@@ -148,9 +148,11 @@ async def display_tutoring_hours(ctx, course):
     await course.hours()
 
 
-async def join_queue(ctx, sessions, accounts):
+async def add_student_to_queue(ctx, sessions, accounts):
     """add student to the given tutor session's queue.
 
+    WARNING: using google sheet api take 3-5 seconds to load the google sheet.
+        because of the delay a progress message will be displayed then removed for the students.
     student are added to the queue only if they submitted their sign-in sheet.
         sign-in sheet is submitted through google form.
     this function automatically puts the student into their respective queue
@@ -171,8 +173,20 @@ async def join_queue(ctx, sessions, accounts):
         embed = get_help_tutee_embed()
         return await send_embed(ctx, embed)
 
+    # display progress message.
+    embed = discord.Embed(description='*verifying sign-in.*')
+    message = await send_embed(ctx, embed)
+
     # validate student submitted their sign-in sheet.
-    # todo add validation
+    verify = student.verify()
+
+    # remove progress message.
+    await message.delete()
+
+    # display error message.
+    if verify is False:
+        embed = discord.Embed(description='*need to sign-in.*')
+        return await send_embed(ctx, embed)
 
     # add student to the queue.
     course = sessions[student.course_code[-3:]]
@@ -232,6 +246,7 @@ async def sign_in(ctx, student_accounts):
     # print error message.
     # if student.verified: embed.description = 'you are already signed-in.'
     # todo implement check if student already sign-in.
+
 
     # send student their custom sign-in link.
     embed = get_accounts_embed(f'your sign-in sheet [click here]({await student.sign_in()}).')
