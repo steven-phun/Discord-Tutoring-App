@@ -151,8 +151,6 @@ async def display_tutoring_hours(ctx, course):
 async def add_student_to_queue(ctx, sessions, accounts):
     """add student to the given tutor session's queue.
 
-    WARNING: using google sheet api take 3-5 seconds to load the google sheet.
-        because of the delay a progress message will be displayed then removed for the students.
     student are added to the queue only if they submitted their sign-in sheet.
         sign-in sheet is submitted through google form.
     this function automatically puts the student into their respective queue
@@ -168,6 +166,66 @@ async def add_student_to_queue(ctx, sessions, accounts):
     """
     student = accounts.get(ctx.author.id)
 
+    # verify if student sign-in.
+    verify = await send_is_verified(ctx, student)
+
+    # display error message.
+    if verify is False:
+        embed = discord.Embed(description=f'<@!{student.discord_id}> *need to sign-in.*')
+        return await send_embed(ctx, embed)
+
+    # add student to the queue.
+    course = sessions[student.course_code[-3:]]
+    course.add(student)
+
+    # display updated queue.
+    await display_queue(ctx, course)
+
+
+async def sign_in(ctx, student_accounts):
+    """send student their custom sign-in sheet to submit.
+
+    student's custom sign-in sheet link will be sent
+        as a direct message because their custom sign-in link may contain sensitive information.
+    students will not get their custom sign-ink link:
+        if they have not provided their student information prior.
+            an 'account not found' error direct message will be sent to the student.
+        if they have already sign-in for that tutoring session.
+            to avoid a student singing in twice on the same tutoring session.
+
+    Parameters
+    ----------
+    :param Context ctx: the current Context.
+    :param dict student_accounts: the dictionary that is storing every student accounts.
+    """
+    student = student_accounts.get(ctx.author.id)
+
+    # verify if student sign-in.
+    verify = await send_is_verified(ctx, student)
+
+    # display error message.
+    if verify is True:
+        embed = discord.Embed(description=f'*you are already signed-in.*')
+        return await send_embed(user=student.discord_id, embed=embed)
+
+    # send student their custom sign-in link.
+    embed = get_accounts_embed(f'your sign-in sheet [click here]({await student.sign_in()}).')
+    await send_embed(ctx, embed)
+
+
+async def send_is_verified(ctx, student):
+    """send a message to prompt the student that the bot is verifying their sign-in.
+
+    WARNING: using google sheet api take 3-5 seconds to load the google sheet.
+        because of the delay a progress message will be displayed
+            then removed for the students when the bot finished verifying.
+
+    Parameters
+    ----------
+    :param Context ctx: the current Context.
+    :param Student student: the student object.
+    :return: True, if student sign-in, otherwise False.
+    """
     # validate if student has set up a bot tutoring bot account.
     if student is None:
         embed = get_help_tutee_embed()
@@ -183,17 +241,7 @@ async def add_student_to_queue(ctx, sessions, accounts):
     # remove progress message.
     await message.delete()
 
-    # display error message.
-    if verify is False:
-        embed = discord.Embed(description='*need to sign-in.*')
-        return await send_embed(ctx, embed)
-
-    # add student to the queue.
-    course = sessions[student.course_code[-3:]]
-    course.add(student)
-
-    # display updated queue.
-    await display_queue(ctx, course)
+    return verify
 
 
 async def remove_student_from_queue(ctx, sessions, accounts):
@@ -218,39 +266,6 @@ async def remove_student_from_queue(ctx, sessions, accounts):
 
     # display updated queue.
     await display_queue(ctx, course)
-
-
-async def sign_in(ctx, student_accounts):
-    """send student their custom sign-in sheet to submit.
-
-    student's custom sign-in sheet link will be sent
-        as a direct message because their custom sign-in link may contain sensitive information.
-    students will not get their custom sign-ink link:
-        if they have not provided their student information prior.
-            an 'account not found' error direct message will be sent to the student.
-        if they have already sign-in for that tutoring session.
-            to avoid a student singing in twice on the same tutoring session.
-
-    Parameters
-    ----------
-    :param Context ctx: the current Context.
-    :param dict student_accounts: the dictionary that is storing every student accounts.
-    """
-    student = student_accounts.get(ctx.author.id)
-
-    # print error message.
-    if student is None:
-        embed = get_help_tutee_embed()
-        return await send_embed(ctx, embed)
-
-    # print error message.
-    # if student.verified: embed.description = 'you are already signed-in.'
-    # todo implement check if student already sign-in.
-
-
-    # send student their custom sign-in link.
-    embed = get_accounts_embed(f'your sign-in sheet [click here]({await student.sign_in()}).')
-    await send_embed(ctx, embed)
 
 
 async def display_queue(ctx, course, direct_msg=False, announcement=True):
