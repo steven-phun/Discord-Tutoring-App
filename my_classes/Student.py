@@ -101,6 +101,12 @@ class Student:
 
         return False
 
+    def mention(self):
+        """generate a str to allow discord to mention this student.
+
+        :return: a string that represents a discord mention syntax.
+        """
+
 
 def to_student(student_info):
     """convert an encrypted student information to a Student object.
