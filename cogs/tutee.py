@@ -1,7 +1,9 @@
 import discord
 import os
+import re
 from discord.ext import commands
-from cogs.bot import send_embed, to_member, send_courses_reaction_message, tutoring_sessions, tutoring_accounts
+from cogs.bot import bot, send_embed, to_member, send_courses_reaction_message, tutoring_sessions, tutoring_accounts, \
+    give_admin_permissions, private_rooms
 from my_classes.Course import Course
 from my_classes.Student import Student
 
@@ -41,7 +43,7 @@ class Tutee(commands.Cog):
             return await get_queue(ctx, tutoring_sessions, tutoring_accounts)
 
         if arg.lower() == 'room':
-            return await generate_private_voice_channel()
+            return await generate_private_voice_channel(ctx, [arg2, arg3, arg4, arg5, arg6])
 
         if arg.lower() == 'set':
             return await setup_account(ctx, tutoring_accounts, arg2, arg3, arg4, arg5, arg6)
@@ -383,45 +385,45 @@ async def generate_private_voice_channel(ctx, other_members):
     :param Context ctx: the current Context.
     :param List other_members: a list of members that were mentioned.
     """
-    # server = bot.get_guild(int(os.getenv("SERVER_ID")))
-    # author = server.get_member(ctx.author.id)
-    #
-    # # display 'room already created' error message.
-    # if author.id in private_rooms.values():
-    #     embed = discord.Embed(description='You already own a room.')
-    #     return await send_embed(ctx, embed)
-    #
-    # private_room_category = list(filter(lambda x: x.id == int(os.getenv("PRIVATE_ROOM_CATEGORY")), server.categories))[
-    #     0]
-    # created_room = await private_room_category.create_voice_channel(f'Private Room: {author}')
-    # await created_room.set_permissions(server.default_role, manage_permissions=False, connect=False, view_channel=False,
-    #                                    stream=True, move_members=False)
-    # invite = await created_room.create_invite()
-    # other_members.append(author.id)
-    # for member in other_members:
-    #     member = re.sub(r'\D', '', str(member))
-    #     if member:
-    #         try:
-    #             member = server.get_member(int(member))
-    #             await make_member_admin_of_room(member, created_room)
-    #
-    #             # send other mentioned users a DM link to the private room.
-    #             if member != author and member != bot.user:
-    #                 embed = discord.Embed(description=f'<@!{author.id}> has created a private room and invited you')
-    #                 await send_embed(embed=embed, user=member.id)
-    #                 await bot.get_user(member.id).send(invite)
-    #         except discord.errors.InvalidArgument:
-    #             print(f'passed invalid member id: {member}')
-    #
-    # # author is not in voice channel.
-    # if author.voice is None:
-    #     # direct message author an invite link.
-    #     await ctx.author.send(f'Here is a link to your private room:\n {invite}')
-    # else:
-    #     await author.move_to(created_room)
-    #
-    # # add author's room to a dictionary.
-    # private_rooms[created_room.id] = author.id
+    server = bot.get_guild(int(os.getenv("GUILD_SERVER_ID")))
+    member = server.get_member(ctx.author.id)
+
+    # display 'room already generated' error message.
+    if member.id in private_rooms.values():
+        embed = discord.Embed(description='*you already generated a room.*')
+        return await send_embed(ctx, embed)
+
+    private_room_category = list(filter(lambda x: x.id == int(os.getenv("PRIVATE_ROOM_CATEGORY_ID")), server.categories))[
+        0]
+    created_room = await private_room_category.create_voice_channel(f'Private Room: {member}')
+    await created_room.set_permissions(server.default_role, manage_permissions=False, connect=False, view_channel=False,
+                                       stream=True, move_members=False)
+    invite = await created_room.create_invite()
+    other_members.append(member.id)
+    for member in other_members:
+        member = re.sub(r'\D', '', str(member))
+        if member:
+            try:
+                member = server.get_member(int(member))
+                await give_admin_permissions(member, created_room)
+
+                # send other mentioned users a DM link to the private room.
+                if member != member and member != bot.user:
+                    embed = discord.Embed(description=f'<@!{member.id}> has created a private room and invited you')
+                    await send_embed(embed=embed, user=member.id)
+                    await bot.get_user(member.id).send(invite)
+            except discord.errors.InvalidArgument:
+                print(f'passed invalid member id: {member}')
+
+    # author is not in voice channel.
+    if member.voice is None:
+        # direct message author an invite link.
+        await ctx.author.send(f'Here is a link to your private room:\n {invite}')
+    else:
+        await member.move_to(created_room)
+
+    # add author's room to a dictionary.
+    private_rooms[created_room.id] = member.id
 
 
 async def display_error_msg(ctx):

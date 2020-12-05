@@ -173,6 +173,26 @@ async def send_courses_reaction_message(ctx, course_code):
     return course_code.upper()
 
 
+async def store_private_voice_channels(member, before, after):
+    """stores generated private voice channel in dictionary.
+
+    Parameters
+    ----------
+    :param Member member: the member whose voice states changed.
+    :param VoiceState before: the voice state prior to the changes.
+    :param VoiceState after: the voice state after to the changes.
+    """
+    if after.channel and after.channel in private_rooms.keys():
+        await give_admin_permissions(member, after.channel)
+    if before.channel and before.channel != after.channel and before.channel.id in private_rooms.keys():
+        channel = before.channel
+        if not channel.members:
+            private_rooms.pop(channel.id)
+            await channel.delete()
+        else:
+            private_rooms[channel.id] = channel.members[0].id
+
+
 async def get_user_info(ctx):
     """print information about the message to the console for debugging.
 
@@ -238,7 +258,8 @@ def generate_bot_client():
     :return: an instance of a discord bot.
     """
     prefix = os.getenv("BOT_PREFIX")
-    intents = discord.Intents(messages=True, guilds=True, members=True, presences=True, reactions=True)
+    intents = discord.Intents(messages=True, guilds=True, members=True, presences=True, reactions=True,
+                              voice_states=True)
 
     return commands.Bot(command_prefix=prefix, help_command=None, intents=intents)
 
@@ -357,15 +378,16 @@ async def on_message(message):
 
 @bot.event
 async def on_voice_state_update(member, before, after):
-    if after.channel and after.channel in private_rooms.keys():
-        await give_admin_permissions(member, after.channel)
-    if before.channel and before.channel != after.channel and before.channel.id in private_rooms.keys():
-        channel = before.channel
-        if not channel.members:
-            private_rooms.pop(channel.id)
-            await channel.delete()
-        else:
-            private_rooms[channel.id] = channel.members[0].id
+    """
+    PERMISSION NEEDED: This requires Intents.voice_states to be enabled.
+
+    Parameters
+    ----------
+    :param Member member: the member whose voice states changed.
+    :param VoiceState before: the voice state prior to the changes.
+    :param VoiceState after: the voice state after to the changes.
+    """
+    await store_private_voice_channels(member, before, after)
 
 
 @bot.event
