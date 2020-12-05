@@ -1,9 +1,12 @@
 import os
+import gspread
+from datetime import date
 from cryptography.fernet import Fernet
 
 
 class Student:
-    def __init__(self, first_name: str, last_name: str, student_id: str, course_code: str, program_degree: str, discord_id: int):
+    def __init__(self, first_name: str, last_name: str, student_id: str, course_code: str, program_degree: str,
+                 discord_id: int):
         self.first = first_name  # the student's first name.
         self.last = last_name  # the student's last name
         self.student_id = student_id  # the student's student id.
@@ -28,7 +31,6 @@ class Student:
             student's account are stored in a discord channel to be read by the bot in the future.
         """
         # encrypt student information
-        print(self.course_code)
         information = f'{self.first} {self.last} {self.student_id} {self.course_code} {self.program_degree} {self.discord_id}'
         fernet = Fernet(os.getenv("FERNET_KEY"))
         encrypted_account = fernet.encrypt(information.encode('utf-8'))
@@ -46,7 +48,58 @@ class Student:
         :return: a str that represents the student's custom sign-in link.
         """
         # generate custom sign-in link.
-        return f'https://docs.google.com/forms/d/e/1FAIpQLSeLjQ8XunqxtzlWGHKB5Kt52-ZAyBqPiyBmLPfNcDuYhb5dsg/viewform?usp=pp_url&entry.1178312123={self.course_code}&entry.1604735080={None}&entry.174697377={self.first}+{self.last}&entry.1854395744={self.student_id}&entry.905892592={self.program_degree}'
+        return f'https://docs.google.com/forms/d/e/1FAIpQLSeLjQ8XunqxtzlWGHKB5Kt52-ZAyBqPiyBmLPfNcDuYhb5dsg/viewform?usp=pp_url&entry.79479348={date.today()}&entry.1178312123={self.course_code}&entry.1604735080={None}1&entry.174697377={self.first}+{self.last}&entry.1854395744={self.student_id}&entry.905892592={self.program_degree}'
+
+    def verify(self):
+        """verify student if they submitted their sign-in sheet via google forms.
+
+        BOT AUTHENTICATION AND AUTHORIZATION NEEDED:
+            for gspread api: https://gspread.readthedocs.io/en/latest/
+        API DOCUMENTATIONS AND RESTRICTIONS LIMITS:
+            restrictions:
+                Sheets API v4 introduced Usage Limits as of this writing:
+                    500 requests per 100 seconds per project,
+                    100 requests per 100 seconds per user.
+                API will display an APIError 429 RESOURCE_EXHAUSTED:
+        ACTION NEEDED:
+            google form appends new data to the end of the sheet rather than inserting it at the top of the sheet.
+                to reduce the time complexity, new data should be searched first.
+            add a new sheet and insert the formula in the A1 cell.
+                =SORT('Form responses 1'!A1:R,1,false)
+                'Form responses 1' is the sheet's name that contains the sign-in information.
+        the bot will give the students a link to sign-in, but the student is still required to submit the form.
+            this function will verify if the student submitted the form.
+        WARNING: google sheet api takes 3-5 seconds to open.
+            to improve user's experience place this function where the user would feel the least amount of delay.
+            it is NOT recommend to look up and modify the sheet directly because the delay will be noticeable.
+                instead store the sheet's content in a data structure
+                    then perform the look ups and modification on the data structure.
+
+        :return: True if the student has submitted their sign-in sheet, otherwise False.
+        """
+        # get authentication and authorization from google sheet credentials file.
+        credentials = gspread.service_account(filename='json_files/google_sheet/credentials.json')
+
+        # get sign-in sheet.
+        sheet = credentials.open_by_key(os.getenv("GOOGLE_SHEET_KEY")).get_worksheet(1)
+
+        # store content in dictionary.
+        content = sheet.get_all_records()
+
+        # verify student's sign-in.
+        for data in content:
+            # only check entries that were submitted today.
+            today = date.today()
+            if data['Date'] != str(date.today()):
+                break
+            # check if student signed-in.
+            if data['Student Name'] == self.name and \
+                    str(data['Student ID']) == self.student_id and \
+                    data['Course Code'] == self.course_code and \
+                    data['Degree'] == self.program_degree:
+                return True
+
+        return False
 
 
 def to_student(student_info):
