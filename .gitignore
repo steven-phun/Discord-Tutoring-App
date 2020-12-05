@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # Google Sheet Credentials
-credentials.json
+google_sheet/credentials.json
