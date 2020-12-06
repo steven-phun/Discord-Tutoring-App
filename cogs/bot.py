@@ -241,6 +241,11 @@ def store_last_bot_msg(message):
 
 
 async def give_admin_permissions(member, channel):
+    """give admin like permission to a given member for a given channel.
+
+    :param discord.Member member: the member object that is being granted the permissions.
+    :param discord.Channel channel: the channel object that the permission will be set.
+    """
     await channel.set_permissions(member, manage_permissions=True, connect=True,
                                   view_channel=True, stream=True, move_members=True, speak=True)
 
