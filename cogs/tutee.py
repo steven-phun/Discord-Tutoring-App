@@ -380,6 +380,9 @@ async def generate_private_voice_channel(ctx, other_members):
         the rooms will be saved in a dictionary (key = room-id, value = member's-discord-id).
     display 'room already generated' error message:
         when a member tries to generate a room, but has one in the server already.
+    the bot by default will move the member to the newly generated room
+        if member is not in a voice channel the bot will send an invite instead.
+        bot will send the other members an invite to give them a choice to accept or deny.
 
     Parameters
     ----------
@@ -400,8 +403,16 @@ async def generate_private_voice_channel(ctx, other_members):
     private_room_channel = await private_room_category.create_voice_channel(f'Private Room: {member}')
     await set_private_room_permissions(server, private_room_channel)
 
-    # send other members an invite.
+    # invite to send to members.
     invite = await private_room_channel.create_invite()
+
+    # move/send an invite to the member.
+    if member.voice is None:
+        await ctx.author.send(f'Here is a link to your private room:\n {invite}')
+    else:
+        await member.move_to(private_room_channel)
+
+    # send other members an invite.
     other_members.append(member.id)
     for member in other_members:
         member = re.sub(r'\D', '', str(member))
@@ -418,13 +429,6 @@ async def generate_private_voice_channel(ctx, other_members):
             except discord.errors.InvalidArgument:
                 embed = discord.Embed(description=f'{member} *is an invalid member.*')
                 await send_embed(ctx, embed)
-
-    # member is not in voice channel.
-    if member.voice is None:
-        # direct message member an invite link.
-        await ctx.author.send(f'Here is a link to your private room:\n {invite}')
-    else:
-        await member.move_to(private_room_channel)
 
     # add member's room to a dictionary.
     private_rooms[private_room_channel.id] = member.id
