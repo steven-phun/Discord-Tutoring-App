@@ -29,6 +29,7 @@ COMMAND | VARIABLE | DESCRIPTION
 COMMAND | VARIABLE | DESCRIPTION
 | :---: | :---: | :---:
 .tutor next | ----- | get the next tutee in tutor's waitlist. 
+.tutor start | [course] | ping students with [course] tag that tutoring started. 
 
 # General Features
 - Features that can be used by other bots. 
