@@ -143,7 +143,7 @@ async def bot_greeting_msg(ctx):
 async def send_courses_reaction_message(ctx, course_code):
     """display a reaction message of all the available session, then wait and return the student's response.
 
-        a cancel emoji will also be displayed along with teh available session.
+        a cancel emoji will also be displayed along with the available session.
         the reaction message will have a timeout time before the message is deleted.
         the reaction message will only listen to the attended author.
 
@@ -151,6 +151,7 @@ async def send_courses_reaction_message(ctx, course_code):
     ----------
     :param Context ctx: the current context.
     :param str course_code: the course code to validate.
+    :return: str that represents a available course code, otherwise return None.
     """
     reaction = Reaction()
 
@@ -281,7 +282,7 @@ def initialize_sessions():
 
     for course_code in Reaction().courses:
         course = Course(course_code)
-        sessions[course.num] = course
+        sessions[course.num()] = course
 
     return sessions
 
