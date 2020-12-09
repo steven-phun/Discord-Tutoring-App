@@ -6,7 +6,6 @@ from datetime import datetime
 class Course:
     def __init__(self, code: str = None):
         self.code = code  # represents the course code.
-        self.num = code[-3:]  # represents the course number.
         self.queue = []  # array of student objects that represents the tutoring queue.
         self.tutors = {}  # a dictionary of Tutor objects that represents the tutors for this course.
         self.message = None  # stores the message sent in the bot announcement channel.
@@ -106,3 +105,14 @@ class Course:
         :return: a discord.Embed.
         """
         return discord.Embed(title=f'🕘 {self.code} Tutoring Hours', description=description)
+
+    def num(self):
+        """convert the course code to just the course number.
+
+        example:
+            EGR222 -> 222
+            CSC312 -> 312
+
+        :return: a str that represents the course number.
+        """
+        return self.code[-3:]
