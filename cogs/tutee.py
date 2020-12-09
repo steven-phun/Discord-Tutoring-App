@@ -147,7 +147,8 @@ async def display_tutoring_hours(ctx, course):
     if course is None:
         return await display_error_msg(ctx)
 
-    await course.hours()
+    embed = course.hours_embed(await course.hours())
+    await send_embed(ctx, embed)
 
 
 async def add_student_to_queue(ctx, sessions, accounts):
@@ -178,7 +179,7 @@ async def add_student_to_queue(ctx, sessions, accounts):
 
     # add student to the queue.
     course = sessions[student.course_code[-3:]]
-    course.add(student)
+    course.append(student)
 
     # display updated queue.
     await display_queue(ctx, course)
@@ -335,7 +336,7 @@ async def get_queue(ctx, sessions, accounts):
         return await send_embed(ctx, embed)
 
     # get queue.
-    course = sessions[student.course_code[-3:]]
+    course = sessions[student.num()]
     await display_queue(ctx, course, announcement=False)
 
 
