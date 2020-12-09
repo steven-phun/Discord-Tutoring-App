@@ -107,7 +107,7 @@ async def setup_account(ctx, accounts, first=None, last=None, student_id=None, c
     await send_embed(ctx, embed, channel=int(os.getenv("STUDENT_ACCOUNTS_CHANNEL_ID")))
 
     # update student's nickname.
-    await edit_nickname(ctx, student.name)
+    await edit_nickname(ctx, student.name())
 
 
 async def edit_nickname(ctx, full_name):

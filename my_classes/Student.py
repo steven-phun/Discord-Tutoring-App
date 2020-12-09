@@ -14,8 +14,6 @@ class Student:
         self.program_degree = program_degree  # the degree the student is current pursuing.
         self.discord_id = discord_id  # the student's discord id.
 
-        self.name = f'{first_name} {last_name}'  # the student's full name.
-        self.tutor = None  # represents the tutor's name.
         self.times_helped = 0  # the number of times the student has been helped by the tutor.
         self.prev_voice_channel = None  # the voice channel id the student is in prior to joining the tutor's.
         self.being_helped = False  # if the student is currently being helped by a tutor.
@@ -89,11 +87,10 @@ class Student:
         # verify student's sign-in.
         for data in content:
             # only check entries that were submitted today.
-            today = date.today()
             if data['Date'] != str(date.today()):
                 break
             # check if student signed-in.
-            if data['Student Name'] == self.name and \
+            if data['Student Name'] == self.name() and \
                     str(data['Student ID']) == self.student_id and \
                     data['Course Code'] == self.course_code and \
                     data['Degree'] == self.program_degree:
@@ -107,6 +104,13 @@ class Student:
         :return: a string that represents a discord mention syntax.
         """
         return f'<@!{self.discord_id}>'
+
+    def name(self):
+        """generates a string that represents the student's full name.
+
+        :return: str of the student's first and last name.
+        """
+        return f'{self.first} {self.last}'
 
 
 def to_student(student_info):
