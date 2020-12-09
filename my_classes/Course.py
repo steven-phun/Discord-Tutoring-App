@@ -8,6 +8,7 @@ class Course:
         self.code = code  # represents the course code.
         self.num = code[-3:]  # represents the course number.
         self.queue = []  # array of student objects that represents the tutoring queue.
+        self.tutors = {}  # a dictionary of Tutor objects that represents the tutors for this course.
         self.message = None  # stores the message sent in the bot announcement channel.
 
     async def hours(self):
