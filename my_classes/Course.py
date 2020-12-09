@@ -7,7 +7,6 @@ class Course:
     def __init__(self, code: str = None):
         self.code = code  # represents the course code.
         self.queue = []  # array of student objects that represents the tutoring queue.
-        self.tutors = {}  # a dictionary of Tutor objects that represents the tutors for this course.
         self.message = None  # stores the message sent in the bot announcement channel.
 
     async def hours(self):
@@ -51,8 +50,8 @@ class Course:
 
         return '\n'.join(array_schedule)
 
-    def add(self, student):
-        """add the student to the tutoring queue.
+    def append(self, student):
+        """appends given student to the tutoring queue.
 
         student will not be added if:
             they are already in the queue.
@@ -70,7 +69,7 @@ class Course:
         self.queue.append(student)
 
     def remove(self, student):
-        """remove the student from the tutoring queue.
+        """remove given student from the tutoring queue.
 
         display a 'not in queue' error message:
             if the student is currently not in their respective queue.
