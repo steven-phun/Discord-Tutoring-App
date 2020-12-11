@@ -21,7 +21,7 @@ class Course:
         ----------
         :return: a str representation of the tutoring hours of a given course.
         """
-        with open(f'json_files/tutoring_hours/{self.code}.json') as file:
+        with open(f'json_files/tutoring_hours/{self.code}.json', encoding="utf8") as file:
             hours = json.load(file)
 
         # store schedule in a string.

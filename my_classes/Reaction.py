@@ -113,5 +113,5 @@ def get_course_from_json():
     :return: a dictionary of all available courses.
     """
     # open and read help message from a .json file.
-    with open('json_files/tutoring_courses/courses.json') as file:
+    with open('json_files/tutoring_courses/courses.json', encoding="utf8") as file:
         return json.load(file)
