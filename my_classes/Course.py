@@ -24,11 +24,11 @@ class Course:
         with open(f'json_files/tutoring_hours/{self.code}.json') as file:
             tutoring_hours = json.load(file)
 
-        # store schedule in an array.
-        array_schedule = []
+        # store schedule in a string.
+        schedule = ''
         for day in tutoring_hours:
-            array_schedule.append('')
-            array_schedule.append(f'__**{day}**__')
+            schedule += '\n'
+            schedule += f'__**{day}**__\n'
 
             # get tutor's schedule.
             for tutor in tutoring_hours[day]:
@@ -46,9 +46,9 @@ class Course:
                 # add tutor's time, location, and tutor's name time to array.
                 tutor_start_time = f'{start_time.strftime("%I:%M%p").lstrip("0").lower()}'
                 tutor_end_time = f'{end_time.strftime("%I:%M%p").lstrip("0").lower()}'
-                array_schedule.append(f'**{tutor_start_time} - {tutor_end_time}** [{location}] - *{tutor}*')
+                schedule += f'**{tutor_start_time} - {tutor_end_time}** [{location}] - *{tutor}*\n'
 
-        return '\n'.join(array_schedule)
+        return schedule
 
     def append(self, student):
         """appends given student to the tutoring queue.
