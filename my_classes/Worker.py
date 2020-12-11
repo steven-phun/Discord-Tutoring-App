@@ -9,3 +9,10 @@ class Worker:
         :return: a str that that represents a mention.
         """
         return f'<@!{self.discord_id}>'
+
+    def hours(self):
+        """convert the tutor's current session hours to a string.
+
+        :return: a str that represents the tutor's current session hours.
+        """
+        return f'dummy string'
