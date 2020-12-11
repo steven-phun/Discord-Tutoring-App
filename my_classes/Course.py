@@ -27,8 +27,7 @@ class Course:
         # store schedule in a string.
         schedule = ''
         for day in tutoring_hours:
-            schedule += '\n'
-            schedule += f'__**{day}**__\n'
+            schedule += f'\n__**{day}**__\n'
 
             # get tutor's schedule.
             for tutor in tutoring_hours[day]:
