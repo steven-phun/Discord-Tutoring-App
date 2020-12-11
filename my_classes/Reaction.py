@@ -58,7 +58,7 @@ class Reaction:
         :param str course_code : the course code to validate.
         :return: True if given course code is available for tutoring, otherwise return False.
         """
-        return course_code.upper() in self.courses
+        return course_code is not None and course_code.upper() in self.courses
 
 
 def get_course_codes():

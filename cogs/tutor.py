@@ -20,9 +20,6 @@ class Tutor(commands.Cog):
         :param str arg2: the second argument.
         :param str arg3: the third argument.
         """
-        if arg is None:
-            return
-
         if await is_tutor(ctx) is False:
             return
 
