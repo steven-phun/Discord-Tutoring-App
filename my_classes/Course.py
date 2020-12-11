@@ -22,25 +22,25 @@ class Course:
         :return: a str representation of the tutoring hours of a given course.
         """
         with open(f'json_files/tutoring_hours/{self.code}.json') as file:
-            tutoring_hours = json.load(file)
+            hours = json.load(file)
 
         # store schedule in a string.
         schedule = ''
-        for day in tutoring_hours:
+        for day in hours:
             schedule += f'\n__**{day}**__\n'
 
             # get tutor's schedule.
-            for tutor in tutoring_hours[day]:
+            for tutor in hours[day]:
                 # get fields from dictionary.
-                location = tutoring_hours[day][tutor]['location']
-                start_hour = tutoring_hours[day][tutor]['start_hour']
-                start_minute = tutoring_hours[day][tutor]['start_minute']
-                end_hour = tutoring_hours[day][tutor]['end_hour']
-                end_minute = tutoring_hours[day][tutor]['end_minute']
+                location = hours[day][tutor]['location']
+                start_hour = hours[day][tutor]['start_hour']
+                start_minute = hours[day][tutor]['start_minute']
+                end_hour = hours[day][tutor]['end_hour']
+                end_minute = hours[day][tutor]['end_minute']
 
                 # convert fields to time object.
-                start_time = datetime.now().replace(hour=start_hour, minute=start_minute, second=0, microsecond=0)
-                end_time = datetime.now().replace(hour=end_hour, minute=end_minute, second=0, microsecond=0)
+                start_time = datetime.now().replace(hour=start_hour, minute=start_minute)
+                end_time = datetime.now().replace(hour=end_hour, minute=end_minute)
 
                 # add tutor's time, location, and tutor's name time to array.
                 tutor_start_time = f'{start_time.strftime("%I:%M%p").lstrip("0").lower()}'
