@@ -27,6 +27,9 @@ class Tutee(commands.Cog):
         if arg is None:
             return
 
+        # not a command.
+        update_students_ctx(ctx)
+
         if arg.lower() == 'hi':
             return await sign_in(ctx, tutoring_accounts)
 
@@ -92,13 +95,13 @@ async def setup_account(ctx, accounts, first=None, last=None, student_id=None, c
     # generate a student object.
     first_name = first.lower().capitalize()
     last_name = last.lower().capitalize()
-    student = Student(first_name, last_name, student_id, course_code, degree, ctx.author.id)
+    student = Student(ctx, first_name, last_name, student_id, course_code, degree, ctx.author.id)
 
     # add student object to student accounts.
     accounts[ctx.author.id] = student
 
     # print account successfully added message.
-    await send_embed(ctx, title=get_student_accounts_title(), text=f'{student.name} has been added!')
+    await send_embed(ctx, title=get_student_accounts_title(), text=f'{student.name()} has been added!')
 
     # encrypt and display the account information.
     channel_id = int(os.getenv("STUDENT_ACCOUNTS_CHANNEL_ID"))
@@ -203,10 +206,12 @@ async def sign_in(ctx, student_accounts):
 
     # display error message.
     if verify is True:
-        return await send_embed(user=student.discord_id, title=get_student_accounts_title(), text=f'*you are already signed-in.*')
+        return await send_embed(user=student.discord_id, title=get_student_accounts_title(),
+                                text=f'*you are already signed-in.*')
 
     # send student their custom sign-in link.
-    await send_embed(ctx, title=get_student_accounts_title(), text=f'your sign-in sheet [click here]({await student.sign_in()}).')
+    await send_embed(ctx, title=get_student_accounts_title(),
+                     text=f'your sign-in sheet [click here]({await student.sign_in()}).')
 
 
 async def send_is_verified(ctx, student):
@@ -373,6 +378,20 @@ async def display_error_msg(ctx):
     :param Context ctx: the current Context.
     """
     await send_embed(ctx, text='*invalid course code.*')
+
+
+def update_students_ctx(ctx):
+    """update student's Context with the given Context.
+
+    when student object gets initialized, the object Context could not be decrypted,
+        therefore, the bot will manually add the student's Context next time the student uses the bot.
+    """
+    student = tutoring_accounts.get(ctx.author.id)
+    if student is None:
+        return
+
+    # update student's Context
+    student.ctx.ctx = ctx
 
 
 def get_student_accounts_title():
