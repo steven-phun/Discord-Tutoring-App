@@ -41,49 +41,49 @@ async def start_tutoring_session(ctx, course_num, tutor_accounts):
     :param str course_num: represents the course number.
     :param dict tutor_accounts: the dictionary that stores every tutor objects.
     """
-    # get object that represents the course.
-    course = tutoring_sessions.get(course_num)
-
-    # set tutor's session.
-    if course is None:
-        course = await set_session(ctx, course_num, tutor_accounts)
-        # if tutor does not select an available course code.
-        if course is None:
-            return
+    # set the tutor's session.
+    await set_session(ctx, course_num, tutor_accounts)
 
     # get tutor object.
     tutor = tutor_accounts[ctx.author.id]
 
+    # terminate function if tutor object is not found.
+    if tutor is None:
+        return
+
     # print tutoring session has started message.
     guild = bot.get_guild(int(os.getenv("GUILD_SERVER_ID")))
-    role = discord.utils.get(guild.roles, name=course.code)
+    role = discord.utils.get(guild.roles, name=tutor.course.code)
     channel_id = int(os.getenv("BOT_ANNOUNCEMENT_CHANNEL_ID"))
     await send_embed(channel=channel_id, title=f'{tutor.hours()}',
-                     text=f'{tutor.mention()}\'s tutoring session has started!')
+                     text=f'{tutor.ctx.mention()}\'s tutoring session has started!')
 
     # ping users in class course tutoring has started.
     await bot.get_channel(channel_id).send(role.mention)
 
     # print confirmation for tutor.
-    await send_embed(ctx, title=f'Tutor Accounts', text=f'tutees of {course.code} thank you for tutoring!')
+    await send_embed(ctx, title=f'Tutor Accounts', text=f'tutees of {tutor.course.code} thank you for tutoring!')
 
 
 async def set_session(ctx, course_num, tutor_accounts):
-    """set the given tutoring session for tutor.
+    """set the given course number for tutor.
 
-    this function is to allow tutors to not have to type the course after each tutor command.
-    this function limits the tutor in setting one tutoring course code at a time.
+    this function is to allow tutors to not have to type the course number after each tutor command.
+    this function limits the tutor in setting more than one tutoring course code at a time.
         if a tutor needs to switch the tutoring course code they can call this function again.
     """
-    code = await send_courses_reaction_message(ctx, course_num)
-    course = tutoring_sessions.get(code[-3:])
+    # get object that represents the course.
+    course = tutoring_sessions.get(course_num)
+
+    # set tutor's session.
+    if course is None:
+        code = await send_courses_reaction_message(ctx, course_num)
+        course = tutoring_sessions.get(code[-3:])
 
     # add tutor object to tutor object dictionary.
     if course is not None:
         tutor = Worker(ctx, course)
         tutor_accounts[tutor.ctx.discord_id()] = tutor
-
-    return course
 
 
 async def get_next_student(ctx, tutor):
