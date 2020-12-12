@@ -6,8 +6,12 @@ class Context:
         self.ctx = ctx  # the discord Context for a given member.
 
     def member(self):
-        """:return: class discord.member.Member"""
+        """:return: a class of discord.member.Member"""
         return self.ctx.bot.get_guild(int(os.getenv("GUILD_SERVER_ID"))).get_member(self.ctx.author.id)
+
+    def discord_id(self):
+        """:return: an int that represents the member's discord id"""
+        return self.ctx.author.id
 
     def voice(self):
         """ represents the member's voice state.
