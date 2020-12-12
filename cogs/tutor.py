@@ -10,7 +10,7 @@ class Tutor(commands.Cog):
         self.tutor_accounts = {}  # a dictionary of tutor objects. { key=discord_id: value=tutor_object }
 
     @commands.command()
-    async def tutor(self, ctx, arg=None, arg2=None, arg3=None):
+    async def tutor(self, ctx, arg=None, arg2=None):
         """listens for the tutor commands.
 
         Parameters
@@ -18,7 +18,6 @@ class Tutor(commands.Cog):
         :param Context ctx: the current Context.
         :param str arg: the first argument.
         :param str arg2: the second argument.
-        :param str arg3: the third argument.
         """
         if await is_tutor(ctx) is False:
             return
@@ -58,16 +57,15 @@ async def start_tutoring_session(ctx, course_num, tutor_accounts):
     # print tutoring session has started message.
     guild = bot.get_guild(int(os.getenv("GUILD_SERVER_ID")))
     role = discord.utils.get(guild.roles, name=course.code)
-    embed = discord.Embed(title=f'{tutor.hours()}', description=f'{tutor.mention()}\'s tutoring session has started!')
     channel_id = int(os.getenv("BOT_ANNOUNCEMENT_CHANNEL_ID"))
-    await send_embed(channel=channel_id, embed=embed)
+    await send_embed(channel=channel_id, title=f'{tutor.hours()}',
+                     text=f'{tutor.mention()}\'s tutoring session has started!')
 
     # ping users in class course tutoring has started.
     await bot.get_channel(channel_id).send(role.mention)
 
     # print confirmation for tutor.
-    embed = discord.Embed(title=f'Tutor Accounts', description=f'tutees of {course.code} thank you for tutoring!')
-    await send_embed(ctx, embed)
+    await send_embed(ctx, title=f'Tutor Accounts', text=f'tutees of {course.code} thank you for tutoring!')
 
 
 async def set_session(ctx, course_num, tutor_accounts):
@@ -114,17 +112,14 @@ async def get_next_student(ctx, tutor):
     """
     # display 'reaction message is still circulating' error message.
     if tutor.is_circulating():
-        embed = discord.Embed(description='*students are still responding.*')
-        return await send_embed(ctx, embed)
+        return await send_embed(ctx, text='*students are still responding.*')
 
     # display 'queue is empty' error message.
     if tutor.course.que_is_empty():
-        embed = discord.Embed(description='*there are no students to tutor!*')
-        return await send_embed(ctx, embed)
+        return await send_embed(ctx, text='*there are no students to tutor!*')
 
     # get the next student in queue.
-    embed = discord.Embed(description='*waiting for the next student to respond.*')
-    await send_embed(ctx, embed)
+    await send_embed(ctx, text='*waiting for the next student to respond.*')
     await tutor.course.next()
 
     # display updated queue.
@@ -149,8 +144,7 @@ async def is_tutor(ctx):
             return True
 
     # display error message.
-    embed = discord.Embed(description='*tutor\'s permission not found.*')
-    await send_embed(ctx, embed)
+    await send_embed(ctx, text='*tutor\'s permission not found.*')
     return False
 
 

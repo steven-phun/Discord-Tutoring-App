@@ -76,8 +76,7 @@ async def setup_account(ctx, accounts, first=None, last=None, student_id=None, c
     """
     # print error message.
     if None in (first, last, student_id, code, degree):
-        embed = get_accounts_embed('*missing fields.*')
-        return await send_embed(ctx, embed)
+        return await send_embed(ctx, title=get_student_accounts_title(), text='*missing fields.*')
 
     # delete command message.
     if str(ctx.channel.type) == 'text':
@@ -99,12 +98,11 @@ async def setup_account(ctx, accounts, first=None, last=None, student_id=None, c
     accounts[ctx.author.id] = student
 
     # print account successfully added message.
-    embed = get_accounts_embed(f'{student.name} has been added!')
-    await send_embed(ctx, embed)
+    await send_embed(ctx, title=get_student_accounts_title(), text=f'{student.name} has been added!')
 
     # encrypt and display the account information.
-    embed = get_accounts_embed(student.encrypt())
-    await send_embed(ctx, embed, channel=int(os.getenv("STUDENT_ACCOUNTS_CHANNEL_ID")))
+    channel_id = int(os.getenv("STUDENT_ACCOUNTS_CHANNEL_ID"))
+    await send_embed(ctx, channel=channel_id, title=get_student_accounts_title(), text=student.encrypt())
 
     # update student's nickname.
     await edit_nickname(ctx, student.name())
@@ -121,16 +119,14 @@ async def edit_nickname(ctx, full_name):
     :param Context ctx: the current context.
     :param str full_name: the str the bot will change the student's nickname to.
     """
-    embed = discord.Embed()
-
     # updated user's nickname in the tutoring server.
     try:
         await to_member(ctx.author.id).edit(nick=full_name)
-        embed.description = f'nickname updated to {full_name}.'
+        description = f'nickname updated to {full_name}.'
     except discord.errors.Forbidden:
-        embed.description = '*nickname could not be updated.*'
+        description = '*nickname could not be updated.*'
 
-    await send_embed(ctx, embed)
+    await send_embed(ctx, text=description)
 
 
 async def display_tutoring_hours(ctx, course):
@@ -174,8 +170,7 @@ async def add_student_to_queue(ctx, sessions, accounts):
 
     # display error message.
     if verify is False:
-        embed = discord.Embed(description=f'<@!{student.discord_id}> *need to sign-in.*')
-        return await send_embed(ctx, embed)
+        return await send_embed(ctx, text=f'<@!{student.discord_id}> *need to sign-in.*')
 
     # add student to the queue.
     course = sessions[student.course_code[-3:]]
@@ -208,12 +203,10 @@ async def sign_in(ctx, student_accounts):
 
     # display error message.
     if verify is True:
-        embed = discord.Embed(description=f'*you are already signed-in.*')
-        return await send_embed(user=student.discord_id, embed=embed)
+        return await send_embed(user=student.discord_id, title=get_student_accounts_title(), text=f'*you are already signed-in.*')
 
     # send student their custom sign-in link.
-    embed = get_accounts_embed(f'your sign-in sheet [click here]({await student.sign_in()}).')
-    await send_embed(ctx, embed)
+    await send_embed(ctx, title=get_student_accounts_title(), text=f'your sign-in sheet [click here]({await student.sign_in()}).')
 
 
 async def send_is_verified(ctx, student):
@@ -231,12 +224,10 @@ async def send_is_verified(ctx, student):
     """
     # validate if student has set up a bot tutoring bot account.
     if student is None:
-        embed = get_help_tutee_embed()
-        return await send_embed(ctx, embed)
+        return await send_embed(ctx, title=get_student_accounts_title(), text=get_help_tutee_description())
 
     # display progress message.
-    embed = discord.Embed(description='*verifying sign-in.*')
-    message = await send_embed(ctx, embed)
+    message = await send_embed(ctx, text='*verifying sign-in.*')
 
     # validate student submitted their sign-in sheet.
     verify = student.verify()
@@ -260,7 +251,7 @@ async def remove_student_from_queue(ctx, sessions, accounts):
 
     # validate if student has set up a bot tutoring bot account.
     if student is None:
-        embed = get_help_tutee_embed()
+        embed = get_help_tutee_description()
         return await send_embed(ctx, embed)
 
     # remove student from queue.
@@ -284,7 +275,7 @@ async def get_queue(ctx, sessions, accounts):
 
     # validate if student has set up a bot tutoring bot account.
     if student is None:
-        embed = get_help_tutee_embed()
+        embed = get_help_tutee_description()
         return await send_embed(ctx, embed)
 
     # get queue.
@@ -323,8 +314,7 @@ async def generate_private_voice_channel(ctx, other_members):
 
     # display 'room already generated' error message.
     if member.id in private_rooms.values():
-        embed = discord.Embed(description='*you already own a room.*')
-        return await send_embed(ctx, embed)
+        return await send_embed(ctx, text='*you already own a room.*')
 
     # generate a private voice channel.
     category_id = int(os.getenv("PRIVATE_ROOM_CATEGORY_ID"))
@@ -352,12 +342,10 @@ async def generate_private_voice_channel(ctx, other_members):
 
                 # send other mentioned users a DM link to the private room.
                 if member != member and member != bot.user:
-                    embed = discord.Embed(description=f'<@!{member.id}> has created a private room and invited you')
-                    await send_embed(embed=embed, user=member.id)
+                    await send_embed(user=member.id, text=f'<@!{member.id}> has created a private room and invited you')
                     await bot.get_user(member.id).send(invite)
             except discord.errors.InvalidArgument:
-                embed = discord.Embed(description=f'{member} *is an invalid member.*')
-                await send_embed(ctx, embed)
+                await send_embed(ctx, text=f'{member} *is an invalid member.*')
 
     # add member's room to a dictionary.
     private_rooms[private_room_channel.id] = member.id
@@ -384,26 +372,19 @@ async def display_error_msg(ctx):
     ----------
     :param Context ctx: the current Context.
     """
-    embed = discord.Embed(description='*invalid course code.*')
-    await send_embed(ctx, embed)
+    await send_embed(ctx, text='*invalid course code.*')
 
 
-def get_accounts_embed(description=''):
-    """stores the default discord.Embed() object for student accounts.
-
-    Parameters
-    ----------
-    :param str description: the description to initial the embed description with.
-    :return: discord.Embed() for student accounts.
-    """
-    return discord.Embed(title='Student Accounts', description=description)
+def get_student_accounts_title():
+    """:return: a str that represents the default embed title for this command."""
+    return 'Student Accounts'
 
 
-def get_help_tutee_embed():
-    """display a help message for the tutee command."""
-    return get_accounts_embed('`.help tutee` - for help to set up an account.')
+def get_help_tutee_description():
+    """:return: a str that represents the default help message for the tutee command."""
+    return '`.help tutee` - for help to set up an account.'
 
 
 # connect this cog to bot.
-def setup(bot):
-    bot.add_cog(Tutee(bot))
+def setup(client):
+    client.add_cog(Tutee(client))
