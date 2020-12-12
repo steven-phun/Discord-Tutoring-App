@@ -132,4 +132,4 @@ dmypy.json
 credentials/
 
 # xml
-.xml
+*.xml
