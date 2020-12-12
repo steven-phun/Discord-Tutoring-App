@@ -6,8 +6,9 @@ from datetime import datetime
 class Course:
     def __init__(self, code: str = None):
         self.code = code  # represents the course code.
-        self.queue = []  # array of student objects that represents the tutoring queue.
         self.message = None  # stores the message sent in the bot announcement channel.
+        self.queue = []  # array of student objects that represents the tutoring queue.
+        self.size = 0  # the number of students in the queue.
 
     async def hours(self):
         """get the location, tutoring hours (12 hours format), and tutor's name for given course.
@@ -49,6 +50,41 @@ class Course:
 
         return schedule
 
+    def next(self):
+        """get the next student in the queue.
+
+        if the first student in the queue is being helped:
+            then, move the student to the end of queue.
+            otherwise, mark the student as being helped.
+        """
+        # move currently helped student to the end of the queue.
+        if self.queue[0].being_helped:
+            student = self.move(0, self.size)
+
+            if student is not None:
+                student.times_helped += 1
+            return
+
+        # mark first student as being helped.
+        self.queue[0].being_helped = True
+
+    def move(self, position_1, position_2):
+        """move the student in the first position to the second position in the queue.
+
+        Parameters
+        ----------
+        :param int position_1: the first position in the queue.
+        :param int position_2: the second position in the queue.
+        """
+        # move student to their new position.
+        try:
+            student = self.queue.pop(position_1)
+            student.being_helped = False
+            self.queue.insert(position_2, student)
+            return student
+        except IndexError:
+            return None
+
     def append(self, student):
         """appends given student to the tutoring queue.
 
@@ -67,6 +103,9 @@ class Course:
         # add student in queue.
         self.queue.append(student)
 
+        # increment size.
+        self.size += 1
+
     def remove(self, student):
         """remove given student from the tutoring queue.
 
@@ -80,6 +119,7 @@ class Course:
         # remove student from queue.
         try:
             self.queue.remove(student)
+            self.size -= 1
         # display error message.
         except ValueError:
             pass
@@ -114,3 +154,10 @@ class Course:
         :return: a str that represents the course number.
         """
         return self.code[-3:]
+
+    def que_is_empty(self):
+        """checks if the queue is empty
+
+        :return: True if the queue's length <= 0, otherwise return False.
+        """
+        return self.size <= 0
