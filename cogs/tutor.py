@@ -123,11 +123,156 @@ async def get_next_student(ctx, tutor):
         return await send_embed(ctx, text='*there are no students to tutor!*')
 
     # get the next student in queue.
-    await send_embed(ctx, text='*waiting for the next student to respond.*')
-    await tutor.course.next()
+    message = await send_embed(ctx, text='*waiting for the next student to respond.*')
+    tutor.course.next()
+
+    # remove message.
+    await message.delete()
+
+    # move next student to tutor's voice channel.
+    await pull_next_student(ctx, tutor)
 
     # display updated queue.
     await display_queue(ctx, tutor.course)
+
+
+async def pull_next_student(ctx, tutor):
+    """move the next student that needs help to the tutor's voice channel.
+
+    DISCORD VOICE PERMISSIONS NEEDED:
+        move members.
+    WARNING: bot cannot force anyone to join a voice channel.
+        display a 'tutor not in voice channel' error message:
+            if the tutor is not in a voice channel.
+        the bot will send the student an invite link to the tutor's voice channel:
+            if the student is not in a voice channel.
+    the bot will DM a reaction message to the first student in the queue asking if they need help.
+        if the student is not ready or did not respond withing a given amount of time
+            the bot will continue to DM the next student
+                and repeat until a student is ready of the tutor decides to stop waiting for a response.
+    the student that reacted to the 'ready emoji':
+        will be move to the top of the queue representing the student is being help by a tutor.
+        will be move to the tutor's voice channel.
+        display an updated waitlist.
+    the tutor will get updates on how each student is responding.
+        student got your invite - if the tutor is waiting for the student to accept the VC invite.
+        student skipped - if the student reacted with a 'not ready emoji'.
+        student did not respond - if the student did not respond with the 'ready or not ready emoji'.
+
+    Parameters
+    ----------
+    :param Context ctx: the current Context.
+    :param 'Worker' tutor: the tutor that called this function.
+    """
+    ready_emoji = '👍🏼'
+    not_ready_emoji = '👎🏼'
+
+    # cycle through the queue until a student is ready.
+    index = 0
+    while True:
+        # DM reaction message to student.
+        student = tutor.course.queue[index]
+        description = f'do you need help?\n\n' \
+                      f'{ready_emoji} - ready! connect me to the tutor.\n\n' \
+                      f'{not_ready_emoji} - not yet, come back to me.'
+        tutor.reaction_msg = await send_embed(user=student.discord_id(), title='Tutor', text=description)
+        reaction = await add_reaction_to_message(tutor.reaction_msg, student.discord_id, [ready_emoji, not_ready_emoji], 15)
+
+        # tutor canceled getting the next student.
+        if tutor.reaction_msg is None: return
+
+        # student did not respond.
+        if reaction is None:
+            embed = discord.Embed(description=f'{mention_student} did not respond.')
+            await send_embed(ctx, embed)
+
+        if reaction is not None:
+            # student is ready.
+            if str(reaction) == ready_emoji:
+                # reaction message no longer circulating.
+                tutor.reaction_msg = None
+                student.being_helped = True
+
+                # move student to position 1
+                tutee = waitlist[index]
+                waitlist.remove(tutee)
+                waitlist.insert(0, tutee)
+
+                # tutor not in voice channel.
+                if not await is_tutor_in_vc(ctx): return
+
+                # student is not in voice channel.
+                if member.voice is None:
+                    # DM invite to student.
+                    invite = await tutors_voice_channel.create_invite()
+                    embed = discord.Embed(title='Tutoring',
+                                          description=f'join tutor\'s voice channel')
+                    await give_connect_to_voice_channel_permission(member, tutors_voice_channel)
+                    await send_embed(embed=embed, user=member.id)
+                    await bot.get_user(member.id).send(invite)
+
+                    # print error message.
+                    embed = discord.Embed(description=f'waiting for {mention_student} to join your voice channel.')
+                    return await send_embed(ctx, embed)
+
+                # store user's voice channel
+                # then move student to tutor's voice channel.
+                student.prev_voice_channel = member.voice.channel
+                await member.move_to(tutor_member.voice.channel)
+                return await print_waitlist(ctx, class_section, dm=True, verify=True)
+
+            # student is not ready.
+            if str(reaction) == not_ready_emoji:
+                embed = discord.Embed(description=f'<@!{student.discord_id}> skipped.')
+                await send_embed(ctx, embed)
+
+        # edge cases.
+        if len(waitlist) == 0:
+            tutor.reaction_msg = None
+            return await print_waitlist(ctx, class_section)
+
+        # get next student on the wait list.
+        index = (index + 1) % len(waitlist)
+
+
+async def add_reaction_to_message(message, author, choice_emojis, timeout):
+    """add reactions to given message and wait for an intended author to respond to it.
+
+    the bot will check if the reaction came from the intended author
+        and if the reaction added was one of the original reaction emoji from the bot.
+    the message will be deleted once the bot stops listening for a reaction
+         to not confuse users thinking that the bot is still listening.
+     the timeout timer will start counting right after message is sent.
+
+    Parameters
+    ----------
+    :param Context message: the current Context.
+    :param int author: the intended author's discord id.
+    :param [] choice_emojis: an array of str emoji to add to the message.
+    :param int timeout: the number of seconds the intended author have to respond.
+    :return: str: the emoji that represents the intended author's reaction.
+    """
+    # add reactions to the message.
+    for emoji in choice_emojis:
+        await message.add_reaction(emoji)
+
+    # function to validate author and reaction added.
+    def check(reaction, user):
+        return user.id == author and str(reaction.emoji) in choice_emojis
+
+    # wait for reaction.
+    try:
+        reaction, _ = await bot.wait_for('reaction_add', check=check, timeout=timeout)
+    except:
+        reaction = None
+
+    # try if the message hasn't been removed by the tutor prior to deletion.
+    try:
+        await message.delete()
+    except:
+        pass
+
+    return reaction
 
 
 async def is_tutor(ctx):
