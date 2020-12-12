@@ -1,4 +1,3 @@
-import discord
 from discord.ext import commands
 from cogs.bot import send_embed, msg_history
 
@@ -42,8 +41,7 @@ async def undo_message(ctx):
                 return await msg_history.get(ctx.author.id).get(ctx.channel.id).pop().delete()
 
     # print error message.
-    embed = discord.Embed(title='😬 Oops Command', description='there are no messages to delete.')
-    await send_embed(ctx, embed)
+    await send_embed(ctx, title='😬 Oops Command', text='there are no messages to delete.')
 
 
 # connect this cog to bot.

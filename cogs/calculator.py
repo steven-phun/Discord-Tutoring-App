@@ -1,4 +1,3 @@
-import discord
 import re
 from discord.ext import commands
 from cogs.bot import send_embed
@@ -47,14 +46,13 @@ async def evaluate_expression(ctx, expression):
     :param Context ctx: the current Context.
     :param str expression: the expression to evaluate.
     """
-    embed = discord.Embed(title='♾ Calculator')
     decimal_places = 3
     try:
-        embed.description = f'result is {round(eval(expression), decimal_places)}.'
+        description = f'result is {round(eval(expression), decimal_places)}.'
     except SyntaxError:
-        embed.description = 'let me google that.'
+        description = 'let me google that.'
 
-    await send_embed(ctx, embed)
+    await send_embed(ctx, title='♾ Calculator', text=description)
 
 
 def check_edge_cases(expression):

@@ -1,4 +1,3 @@
-import discord
 import os
 from discord.ext import commands
 from cogs.bot import send_embed, json_to_dict
@@ -37,7 +36,6 @@ async def get_help_msg(ctx, help_command=None):
     :param Context ctx: the current Context.
     :param str help_command: the command help message to print.
     """
-    embed = discord.Embed(title='💬 Bot Usage Examples')
     help_message_found = False
     separator = '\n'
 
@@ -65,13 +63,16 @@ async def get_help_msg(ctx, help_command=None):
                 help_msg.append(separator.join(message))
                 help_msg.append('')
 
-        embed.description = separator.join(help_msg)
-        await send_embed(ctx, embed)
+        await send_embed(ctx, title=get_help_title(), text=separator.join(help_msg))
 
     # print error message.
     if help_message_found is False:
-        embed.description = f'no help message was found for `{help_command}`'
-        await send_embed(ctx, embed)
+        await send_embed(ctx, title=get_help_title(), text=f'no help message was found for `{help_command}`')
+
+
+def get_help_title():
+    """:return: a str that represents the default embed title for this command."""
+    return '💬 Bot Usage Examples'
 
 
 # connect this cog to bot.

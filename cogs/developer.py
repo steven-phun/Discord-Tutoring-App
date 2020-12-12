@@ -40,29 +40,28 @@ async def modify_cogs_file(ctx, action, cog):
     :param str action: the action to take on the cog (load/unload).
     :param str cog: the cog to load or unload.
     """
-    embed = get_dev_embed()
-
     # try except if extension exists.
+    description = ''
     try:
         # loads a cog file without having to reset the bot.
         if action.lower() == 'load':
             bot.load_extension(f'cogs.{cog}')
-            embed.description = f'{cog} app loaded.'
+            description = f'{cog} app loaded.'
 
         # unload a cog file without having to reset the bot.
         if action.lower() == 'unload':
             bot.unload_extension(f'cogs.{cog}')
-            embed.description = f'{cog} app unloaded.'
+            description = f'{cog} app unloaded.'
 
         # reloads a cog file without having to reset the bot.
         if action.lower() == 'reload':
             bot.unload_extension(f'cogs.{cog}')
             bot.load_extension(f'cogs.{cog}')
-            embed.description = f'{cog} app reloaded.'
+            description = f'{cog} app reloaded.'
     except discord.ext.commands.errors.ExtensionNotLoaded:
-        embed.description = f'`{cog}` file not found.'
+        description = f'`{cog}` file not found.'
 
-    await send_embed(ctx, embed)
+    await send_embed(ctx, title=get_dev_title(), text=description)
 
 
 async def display_dev_help_msg(ctx):
@@ -83,8 +82,7 @@ async def display_dev_help_msg(ctx):
             help_msg.append(f'`{prefix}{command}` - {description}')
         help_msg.append('')
 
-    embed = get_dev_embed(separator.join(help_msg))
-    await send_embed(ctx, embed)
+    await send_embed(ctx, title=get_dev_title(), text=separator.join(help_msg))
 
 
 async def display_available_apps(ctx):
@@ -94,27 +92,20 @@ async def display_available_apps(ctx):
     ----------
     :param Context ctx: the current Context.
     """
-    embed = get_dev_embed()
+    description = ''
 
     # get all available application files.
     file_directory = 'cogs'
     for file in os.listdir(file_directory):
         if file.endswith('.py'):
-            embed.description += f'- {file.replace(".py", "")}\n'
+            description += f'- {file.replace(".py", "")}\n'
 
-    await send_embed(ctx, embed)
+    await send_embed(ctx, title=get_dev_title(), text=description)
 
 
-def get_dev_embed(description=''):
-    """generate a default discord embed for the Bot Developers.
-
-    Parameters
-    ----------
-    :param str description: the description to initialize the embed with.
-    :return: a discord.embeds.Embed for the Bot Developers.
-    """
-
-    return discord.Embed(title='🤖 Bot Developers', description=description)
+def get_dev_title():
+    """:return: a str that represents the default embed title for this command."""
+    return '🤖 Bot Developers'
 
 
 def is_developer(ctx):

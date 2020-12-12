@@ -1,5 +1,3 @@
-import discord
-import json
 from discord.ext import commands
 from cogs.bot import send_embed, json_to_dict
 
@@ -53,13 +51,13 @@ async def get_chapel_week(ctx, week_num=None):
 
     # print chapel schedule.
     separator = '\n'
-    embed = discord.Embed(title='⛪ Chapel Schedule', description=separator.join(schedule))
+    description = separator.join(schedule)
 
     # print error message.
-    if len(embed.description) == 0:
-        embed.description = f'*no scheduled chapel for week {week_num}.*'
+    if len(description) == 0:
+        description = f'*no scheduled chapel for week {week_num}.*'
 
-    await send_embed(ctx, embed)
+    await send_embed(ctx, title='⛪ Chapel Schedule', text=description)
 
 
 # connect this cog to bot.

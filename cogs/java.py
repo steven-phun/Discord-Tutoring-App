@@ -1,4 +1,3 @@
-import discord
 import os
 from discord.ext import commands
 from cogs.bot import send_embed, json_to_dict
@@ -24,17 +23,15 @@ async def get_java_cheat_sheet(ctx, method):
     :param Context ctx: the current Context.
     :param str method: the specific method to display.
     """
-    embed = discord.Embed(title=f'☕ Java {method.lower().capitalize()} Methods')
-
     # print cheat sheet.
     file_directory = 'json_files/java_cheat_sheet'
     java_file = f'{method.lower()}.json'
     for file in os.listdir(file_directory):
         if java_file == file:
             cheat_sheet = json_to_dict(f'{file_directory}/{java_file}')
-            embed.description = get_cheat_sheet(cheat_sheet)
+            title = f'☕ Java {method.lower().capitalize()} Methods'
 
-            return await send_embed(ctx, embed)
+            return await send_embed(ctx, title=title, text=get_cheat_sheet(cheat_sheet))
 
 
 def get_cheat_sheet(cheat_sheet):

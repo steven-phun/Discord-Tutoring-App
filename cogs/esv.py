@@ -1,6 +1,5 @@
-import discord
-import requests
 import os
+import requests
 from discord.ext import commands
 from cogs.bot import send_embed
 
@@ -16,10 +15,8 @@ class ESV(commands.Cog):
         # Bible verse numbers are wrapped with '[]' in the api
         # replace brackets with discord's single line code block.
         description = get_esv_verse(passage).replace('[', '`').replace(']', '`')
-        title = '🙏🏻 English Standard Version'
-        embed = discord.Embed(title=title, description=description)
 
-        await send_embed(ctx, embed)
+        await send_embed(ctx, title='🙏🏻 English Standard Version', text=description)
 
 
 def get_esv_verse(passage):

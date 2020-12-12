@@ -48,7 +48,6 @@ async def display_weather(ctx, city, zip_code, country, units):
     :param str country: the country code for the local weather..
     :param str units: the units the temperature will be displayed.
     """
-    embed = discord.Embed(title=':white_sun_rain_cloud: Weather')
     api_key = os.getenv('WEATHER_API_KEY')
     url = f'http://api.openweathermap.org/data/2.5/weather?q={city},{zip_code},{country}&appid={api_key}&units={units}'
     response = requests.get(url).json()
@@ -60,11 +59,11 @@ async def display_weather(ctx, city, zip_code, country, units):
         country_code = response['sys']['country']
         condition = response['weather'][0]['description']
 
-        embed.description = f'it is {temperature} {degrees} with {condition} in {city_name}, {country_code}'
+        description = f'it is {temperature} {degrees} with {condition} in {city_name}, {country_code}'
     except:
-        embed.description = f'cannot find city, {city}'
+        description = f'cannot find city, {city}'
 
-    await send_embed(ctx, embed)
+    await send_embed(ctx, title=':white_sun_rain_cloud: Weather', text=description)
 
 
 def get_weather_units(units):
