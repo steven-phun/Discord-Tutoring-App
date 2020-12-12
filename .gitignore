@@ -130,6 +130,3 @@ dmypy.json
 
 # Credentials directory
 credentials/
-
-# idea directory
-.idea
