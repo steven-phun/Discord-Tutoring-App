@@ -124,15 +124,9 @@ class Course:
         except ValueError:
             pass
 
-    def queue_embed(self, description=''):
-        """generate a default queue embed.
-
-        Parameters
-        ----------
-        :param str description: the description to initialize the embed description with.
-        :return: a discord.Embed.
-        """
-        return discord.Embed(title=f'📋 {self.code} Queue', description=description)
+    def queue_title(self):
+        """:return: a str that represents the default embed title for this command."""
+        return f'📋 {self.code} Queue'
 
     def hours_embed(self, description=''):
         """generate a default tutoring hours embed.
