@@ -101,11 +101,12 @@ class Student:
         return False
 
     def name(self):
-        """generates a string that represents the student's full name.
-
-        :return: str of the student's first and last name.
-        """
+        """:return: str of the student's first and last name."""
         return f'{self.first} {self.last}'
+
+    def num(self):
+        """:return: a str that presents the course number."""
+        return self.course_code[-3:]
 
 
 def to_student(student_info):
