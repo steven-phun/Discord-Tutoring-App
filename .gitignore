@@ -130,3 +130,6 @@ dmypy.json
 
 # Credentials directory
 credentials/
+
+# xml
+.xml
