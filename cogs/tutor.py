@@ -80,8 +80,8 @@ async def set_session(ctx, course_num, tutor_accounts):
 
     # add tutor object to tutor object dictionary.
     if course is not None:
-        tutor = Worker(ctx.author.id, course)
-        tutor_accounts[tutor.discord_id] = tutor
+        tutor = Worker(ctx, course)
+        tutor_accounts[tutor.ctx.discord_id()] = tutor
 
     return course
 

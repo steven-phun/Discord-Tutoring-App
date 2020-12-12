@@ -3,11 +3,11 @@ import os
 
 class Context:
     def __init__(self, ctx):
-        self.ctx = ctx  # the discord Context for a given member.
+        self.ctx = ctx
 
     def member(self):
         """:return: a class of discord.member.Member"""
-        return self.ctx.bot.get_guild(int(os.getenv("GUILD_SERVER_ID"))).get_member(self.ctx.author.id)
+        return self.ctx.bot.get_guild(int(os.getenv("GUILD_SERVER_ID"))).get_member(self.discord_id())
 
     def discord_id(self):
         """:return: an int that represents the member's discord id"""

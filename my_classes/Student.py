@@ -6,13 +6,15 @@ from my_classes.Context import Context
 
 
 class Student:
-    def __init__(self, ctx, first_name: str, last_name: str, student_id: str, course_code: str, program_degree: str):
+    def __init__(self, ctx, first_name: str, last_name: str, student_id: str, course_code: str, program_degree: str, discord_id: int):
         self.ctx = Context(ctx)  # the object that represents this member's Content.
+
         self.first = first_name  # the student's first name.
         self.last = last_name  # the student's last name
         self.student_id = student_id  # the student's student id.
         self.course_code = course_code  # the course code that the student is in tutoring for.
         self.program_degree = program_degree  # the degree the student is current pursuing.
+        self.discord_id = discord_id  # the student's discord id.
 
         self.times_helped = 0  # the number of times the student has been helped by the tutor.
         self.prev_voice_channel = None  # the voice channel id the student is in prior to joining the tutor's.
@@ -29,7 +31,7 @@ class Student:
             student's account are stored in a discord channel to be read by the bot in the future.
         """
         # encrypt student information
-        information = f'{self.first} {self.last} {self.student_id} {self.course_code} {self.program_degree} {self.ctx.discord_id()}'
+        information = f'{self.first} {self.last} {self.student_id} {self.course_code} {self.program_degree} {self.discord_id}'
         fernet = Fernet(os.getenv("FERNET_KEY"))
         encrypted_account = fernet.encrypt(information.encode('utf-8'))
 
@@ -124,4 +126,4 @@ def to_student(student_info):
     info = decrypt_info.decode('utf-8').split(' ')
 
     # generate Student object.
-    return Student(info[0], info[1], info[2], info[3], info[4], info[5])
+    return Student(None, info[0], info[1], info[2], info[3], info[4], int(info[5]))
