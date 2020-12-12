@@ -19,14 +19,22 @@ class Tutor(commands.Cog):
         :param str arg: the first argument.
         :param str arg2: the second argument.
         """
+        # terminate function if user does not have tutor permissions.
         if await is_tutor(ctx) is False:
             return
 
+        # set tutor's tutoring session.
+        if await is_tutor_object_in_dict(ctx, arg2, self.tutor_accounts) is False:
+            return
+
         if arg.lower() == 'start':
-            return await start_tutoring_session(ctx, arg2, self.tutor_accounts)
+            return await announce_session_started(ctx, self.tutor_accounts[ctx.author.id])
+
+        if arg.lower() == 'next':
+            return await get_next_student(ctx, self.tutor_accounts[ctx.author.id])
 
 
-async def start_tutoring_session(ctx, course_num, tutor_accounts):
+async def announce_session_started(ctx, tutor):
     """prompt the students that the tutor is ready to tutor.
 
     a message will be sent to the 'bot announcement channel':
@@ -38,19 +46,8 @@ async def start_tutoring_session(ctx, course_num, tutor_accounts):
     Parameters
     ----------
     :param Context ctx: the current context.
-    :param str course_num: represents the course number.
-    :param dict tutor_accounts: the dictionary that stores every tutor objects.
+    :param Worker tutor: a dictionary of all tutor accounts.
     """
-    # set the tutor's session.
-    await set_session(ctx, course_num, tutor_accounts)
-
-    # get tutor object.
-    tutor = tutor_accounts[ctx.author.id]
-
-    # terminate function if tutor object is not found.
-    if tutor is None:
-        return
-
     # print tutoring session has started message.
     guild = bot.get_guild(int(os.getenv("GUILD_SERVER_ID")))
     role = discord.utils.get(guild.roles, name=tutor.course.code)
@@ -84,6 +81,21 @@ async def set_session(ctx, course_num, tutor_accounts):
     if course is not None:
         tutor = Worker(ctx, course)
         tutor_accounts[tutor.ctx.discord_id()] = tutor
+
+
+async def is_tutor_object_in_dict(ctx, course_num, tutor_accounts):
+    """checks if there is a tutor object associated with the tutor.
+
+    the tutor will be given a chance to set their tutoring session.
+        if the tutor fails to set after the chance then return False.
+
+    :return: True if there is a tutor object, otherwise return False.
+    """
+    # set tutor's course code session.
+    await set_session(ctx, course_num, tutor_accounts)
+
+    # get tutor object.
+    return tutor_accounts[ctx.author.id] is not None
 
 
 async def get_next_student(ctx, tutor):
