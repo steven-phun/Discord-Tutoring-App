@@ -8,13 +8,12 @@ from pathlib import Path
 from my_classes.Course import Course
 from my_classes.Reaction import Reaction
 from my_classes.Role import Role
+from my_classes.Student import to_student
+
 
 ######################
 #  GLOBAL FUNCTIONS  #
 ######################
-from my_classes.Student import to_student
-
-
 async def send_embed(ctx=None, embed=None, user=None, channel=None):
     """send an embed message to a designated channel.
 
@@ -321,6 +320,81 @@ async def initialize_accounts(dictionary):
     for msg in history:
         student = to_student(msg.embeds[0].description)  # todo convert method to class?
         dictionary[student.discord_id] = student  # add student accounts to dictionary.
+
+
+###########################
+#  TUTEE/TUTOR FUNCTIONS  #
+###########################
+async def display_queue(ctx, course, direct_msg=False, announcement=True):
+    """display the current queue.
+
+    DISCORD CHANNEL NEEDED: a bot announcement channel.
+        bot will display an updated queue:
+            everytime the queue has been modify.
+        to keep the queue updated the bot will remove the queue message.
+    the bot will display a 'user has not sign-in' error message.
+        if the current student being helped ( queue[0] ) did not submit their sign-in form.
+    a 'queue is empty' error message will be displayed:
+        if there are no students in the queue.
+    (optional) bot will send a direct message to each student their current position in the queue.
+
+   Parameters
+    ----------
+    :param Context ctx: the current Context.
+    :param Course course: the course queue's object to display.
+    :param boolean direct_msg: if True direct message each student their position in the queue,
+                               otherwise do nothing.
+   :param boolean announcement: if True queue should be printed in the bot announcement channel,
+                                otherwise do nothing.
+    """
+    embed = course.queue_embed()
+
+    # display queue.
+    for index, student in enumerate(course.queue, start=1):
+        mention_student = f'<@!{student.discord_id}>'
+        embed.description += f'#{index} {mention_student} - {student.times_helped}\n'
+
+        # send student their position in queue.
+        if direct_msg:
+            await send_position_in_queue(student.discord_id, course, index)
+
+    # display error message.
+    if course.que_is_empty():
+        embed.description = '*queue is empty.*'
+
+    if announcement:
+        # remove old queue message made by bot.
+        if course.message is not None:
+            await course.message.delete()
+
+        # display updated queue in bot announcement channel.
+        course.message = await send_embed(embed=embed, channel=int(os.getenv("BOT_ANNOUNCEMENT_CHANNEL_ID")))
+
+    await send_embed(ctx, embed)
+
+
+async def send_position_in_queue(discord_id, course, position):
+    """DM given student their current position in the queue.
+        since student in position 1 is with the tutor
+            a position update is not needed.
+        students in position 2 will have a custom message.
+            while the other positions will get the default message.
+
+    Parameters
+    ----------
+    :param int discord_id: the student's discord id.
+    :param Course course: the course object.
+    :param int position: the student's position in the queue.
+    """
+    if position == 1:
+        return
+
+    embed = course.queue_embed(f'#{position} in the queue')
+
+    if position == 2:
+        embed.description = 'you are next!'  # custom message.
+
+    await send_embed(user=discord_id, embed=embed)
 
 
 ######################
