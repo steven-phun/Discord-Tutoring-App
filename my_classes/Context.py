@@ -5,13 +5,13 @@ class Context:
     def __init__(self, ctx):
         self.ctx = ctx
 
-    def member(self):
-        """:return: a class of discord.member.Member"""
-        return self.ctx.bot.get_guild(int(os.getenv("GUILD_SERVER_ID"))).get_member(self.discord_id())
-
     def discord_id(self):
         """:return: an int that represents the member's discord id"""
         return self.ctx.author.id
+
+    def member(self):
+        """:return: a class of discord.member.Member"""
+        return self.ctx.bot.get_guild(int(os.getenv("GUILD_SERVER_ID"))).get_member(self.discord_id())
 
     def voice(self):
         """ represents the member's voice state.
@@ -32,3 +32,6 @@ class Context:
 
         :return: the member's discord.member.VoiceState."""
         return self.member().voice
+
+    def mention(self):
+        return self.member().mention
