@@ -14,7 +14,7 @@ from my_classes.Student import to_student
 ######################
 #  GLOBAL FUNCTIONS  #
 ######################
-async def send_embed(ctx=None, embed=None, user=None, channel=None):
+async def send_embed(ctx=None, embed_title=os.getenv('BOT_NAME'), text='', user=None, channel=None):
     """send an embed message to a designated channel.
 
     WARNING: embed messages has a max length of 2048 characters.
@@ -35,17 +35,14 @@ async def send_embed(ctx=None, embed=None, user=None, channel=None):
     Parameters
     ----------
     :param Context ctx: the current Context.
-    :param discord.embeds. embed: the embed message.
+    :param str embed_title: the text for the embed title.
+    :param str text: the text for the embed description.
     :param int user: the user's discord id.
     :param int channel: the discord channel id.
     :return: the discord.Embed sent.
     """
-    # set embed title to bot's name by default.
-    if len(embed.title) == 0:
-        embed.title = os.getenv("BOT_NAME")
-
-    # generate a random hex color code.
-    embed.color = random.randint(0, 0xffffff)
+    # generate the embed object.
+    embed = discord.Embed(title=embed_title, description=text, color=random.randint(0, 0xffffff))
 
     # send multiple messages if needed.
     embed_limit = 2048
