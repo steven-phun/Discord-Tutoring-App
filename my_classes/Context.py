@@ -34,4 +34,5 @@ class Context:
         return self.member().voice
 
     def mention(self):
+        """:return: a str that allows given member to be mentioned."""
         return self.member().mention
