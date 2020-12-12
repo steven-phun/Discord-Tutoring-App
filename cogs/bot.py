@@ -14,7 +14,7 @@ from my_classes.Student import to_student
 ######################
 #  GLOBAL FUNCTIONS  #
 ######################
-async def send_embed(ctx=None, title=os.getenv('BOT_NAME'), text='', user=None, channel=None):
+async def send_embed(ctx=None, title=None, text='', user=None, channel=None):
     """send an embed message to a designated channel.
 
     WARNING: embed messages has a max length of 2048 characters.
@@ -41,8 +41,13 @@ async def send_embed(ctx=None, title=os.getenv('BOT_NAME'), text='', user=None, 
     :param int channel: the discord channel id.
     :return: the discord.Embed sent.
     """
+    # embed title by default is the bot's name.
+    embed_title = title
+    if embed_title is None:
+        embed_title = os.getenv("BOT_NAME")
+
     # generate the embed object.
-    embed = discord.Embed(title=title, description=text, color=random.randint(0, 0xffffff))
+    embed = discord.Embed(title=embed_title, description=text, color=random.randint(0, 0xffffff))
 
     # send multiple messages if needed.
     embed_limit = 2048
@@ -113,14 +118,13 @@ async def notify_devs_when_ready():
     for user in members:
         for role in user.roles:
             if role.id == int(os.getenv("DEVELOPERS_ROLE_ID")):
-                embed = discord.Embed(description='i am online!')
                 try:
-                    await send_embed(embed=embed, user=user.id)
+                    await send_embed(user=user.id, text='i am online!')
                 except:  # todo edit bare except.
-                    f'{user} has message from non-friends disabled.'
+                    print(f'{user} has message from non-friends disabled.')
 
 
-async def bot_greeting_msg(ctx):
+async def bot_mention_message(ctx):
     """ displays a greeting message whenever the bot is mentioned in a message.
 
     the greeting message includes:
@@ -131,9 +135,8 @@ async def bot_greeting_msg(ctx):
     :param Context ctx: the current Context.
     """
     prefix = os.getenv("BOT_PREFIX")
-    embed = discord.Embed(description=f'`{prefix}help` to see what i can do.')
 
-    await send_embed(ctx, embed)
+    await send_embed(ctx, text=f'`{prefix}help` to see what i can do.')
 
 
 async def send_courses_reaction_message(ctx, course_code):
@@ -152,10 +155,8 @@ async def send_courses_reaction_message(ctx, course_code):
     reaction = Reaction()
 
     if reaction.validate(course_code) is False:
-        embed = discord.Embed(description=reaction.message)
-
         # display reaction message.
-        msg = await send_embed(channel=ctx.channel.id, embed=embed)
+        msg = await send_embed(channel=ctx.channel.id, text=reaction.message)
         student_choice = await reaction.add(bot, msg, ctx.author.id, 30)
 
         # validate student's reaction choice.
@@ -344,12 +345,11 @@ async def display_queue(ctx, course, direct_msg=False, announcement=True):
    :param boolean announcement: if True queue should be printed in the bot announcement channel,
                                 otherwise do nothing.
     """
-    embed = course.queue_embed()
-
     # display queue.
+    description = ''
     for index, student in enumerate(course.queue, start=1):
         mention_student = f'<@!{student.discord_id}>'
-        embed.description += f'#{index} {mention_student} - {student.times_helped}\n'
+        description += f'#{index} {mention_student} - {student.times_helped}\n'
 
         # send student their position in queue.
         if direct_msg:
@@ -357,7 +357,7 @@ async def display_queue(ctx, course, direct_msg=False, announcement=True):
 
     # display error message.
     if course.que_is_empty():
-        embed.description = '*queue is empty.*'
+        description = '*queue is empty.*'
 
     if announcement:
         # remove old queue message made by bot.
@@ -365,9 +365,10 @@ async def display_queue(ctx, course, direct_msg=False, announcement=True):
             await course.message.delete()
 
         # display updated queue in bot announcement channel.
-        course.message = await send_embed(embed=embed, channel=int(os.getenv("BOT_ANNOUNCEMENT_CHANNEL_ID")))
+        channel = int(os.getenv("BOT_ANNOUNCEMENT_CHANNEL_ID"))
+        course.message = await send_embed(channel=channel, title=course.queue_title(), text=description)
 
-    await send_embed(ctx, embed)
+    await send_embed(ctx, title=course.queue_title(), text=description)
 
 
 async def send_position_in_queue(discord_id, course, position):
@@ -386,12 +387,12 @@ async def send_position_in_queue(discord_id, course, position):
     if position == 1:
         return
 
-    embed = course.queue_embed(f'#{position} in the queue')
+    description = f'#{position} in the queue'
 
     if position == 2:
-        embed.description = 'you are next!'  # custom message.
+        description = 'you are next!'  # custom message.
 
-    await send_embed(user=discord_id, embed=embed)
+    await send_embed(user=discord_id, title=course.queue_title(), text=description)
 
 
 ######################
@@ -443,7 +444,7 @@ async def on_message(message):
 
     # display a greeting message when the bot is mentioned.
     if mentioned_user(int(os.getenv("BOT_ID"))) in message.content:
-        await bot_greeting_msg(message)
+        await bot_mention_message(message)
 
     # store the last bot message.
     store_last_bot_msg(message)
