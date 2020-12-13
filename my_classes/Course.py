@@ -77,7 +77,7 @@ class Course:
             self.queue.insert(position_2, student)
             return student
         except IndexError:
-            return None
+            pass
 
     def append(self, student):
         """appends given student to the tutoring queue.
