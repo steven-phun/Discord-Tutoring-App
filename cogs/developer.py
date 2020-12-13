@@ -23,11 +23,7 @@ class Developer(commands.Cog):
         if arg.lower() == 'app':
             await display_available_apps(ctx)
 
-        # WARNING: other dev commands need to go above this edge case.
-        if arg2 is None:
-            return
-
-        # modify cogs file.
+        # load or unload cogs file.
         await modify_cogs_file(ctx, arg, arg2)
 
 
@@ -92,12 +88,10 @@ async def display_available_apps(ctx):
     ----------
     :param Context ctx: the current Context.
     """
-    description = ''
-
     # get all available application files.
-    file_directory = 'cogs'
-    for file in os.listdir(file_directory):
-        if file.endswith('.py'):
+    description = ''
+    for file in os.listdir('cogs'):
+        if file.endswith('.py') and not file.startswith('bot'):
             description += f'- {file.replace(".py", "")}\n'
 
     await send_embed(ctx, title=get_dev_title(), text=description)
@@ -125,5 +119,5 @@ def is_developer(ctx):
 
 
 # connect this cog to bot.
-def setup(bot):
-    bot.add_cog(Developer(bot))
+def setup(client):
+    client.add_cog(Developer(client))
