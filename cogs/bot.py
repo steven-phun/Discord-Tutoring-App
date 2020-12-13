@@ -323,7 +323,7 @@ async def initialize_accounts(dictionary):
 ###########################
 #  TUTEE/TUTOR FUNCTIONS  #
 ###########################
-async def display_queue(ctx, course, direct_msg=False, announcement=True):
+async def display_queue(ctx, course, current_channel=True, direct_msg=False, announcement=True):
     """display the current queue.
 
     DISCORD CHANNEL NEEDED: a bot announcement channel.
@@ -339,11 +339,10 @@ async def display_queue(ctx, course, direct_msg=False, announcement=True):
    Parameters
     ----------
     :param Context ctx: the current Context.
+    :param boolean current_channel: if True queue should be printed where the command was triggered
     :param Course course: the course queue's object to display.
     :param boolean direct_msg: if True direct message each student their position in the queue,
-                               otherwise do nothing.
-   :param boolean announcement: if True queue should be printed in the bot announcement channel,
-                                otherwise do nothing.
+    :param boolean announcement: if True queue should be printed in the bot announcement channel
     """
     # display queue.
     description = ''
@@ -368,7 +367,8 @@ async def display_queue(ctx, course, direct_msg=False, announcement=True):
         channel = int(os.getenv("BOT_ANNOUNCEMENT_CHANNEL_ID"))
         course.message = await send_embed(channel=channel, title=course.queue_title(), text=description)
 
-    await send_embed(ctx, title=course.queue_title(), text=description)
+    if current_channel:
+        await send_embed(ctx, title=course.queue_title(), text=description)
 
 
 async def send_position_in_queue(discord_id, course, position):
