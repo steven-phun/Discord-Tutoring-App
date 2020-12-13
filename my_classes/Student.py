@@ -104,7 +104,7 @@ class Student:
         """:return: str of the student's first and last name."""
         return f'{self.first} {self.last}'
 
-    def num(self):
+    def course_num(self):
         """:return: a str that presents the course number."""
         return self.course_code[-3:]
 
