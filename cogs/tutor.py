@@ -24,11 +24,15 @@ class Tutor(commands.Cog):
         if await is_tutor(ctx) is False:
             return
 
+        if arg.lower() == 'end':
+            return await end_session(ctx, self.tutor_accounts.get(ctx.author.id), self.tutor_accounts)
+
         if arg.lower() == 'start' or self.tutor_accounts.get(ctx.author.id) is None:
             await announce_session_started(ctx, arg2, self.tutor_accounts)
 
         if arg.lower() == 'que':
             return await display_queue(ctx, self.tutor_accounts.get(ctx.author.id).course)
+
         if arg.lower() == 'next':
             return await get_next_student(ctx, self.tutor_accounts.get(ctx.author.id))
 
@@ -106,6 +110,24 @@ async def set_session(ctx, course_num, tutor_accounts):
     if course is not None:
         tutor = Worker(ctx, course)
         tutor_accounts[tutor.ctx.discord_id()] = tutor
+
+
+async def end_session(ctx, tutor, account):
+    """remove the tutor object from tutor accounts.
+
+    :param Context ctx: the current Context.
+    :param 'Worker' tutor: the object that represents a tutor.
+    :param {} account: the dictionary that stores the tutor objects.
+    """
+    try:
+        # remove tutor object from accounts.
+        account.pop(tutor.ctx.discord_id())
+
+        # display confirmation.
+        await send_embed(ctx, text=f'{tutor.ctx.mention()} thank you!')
+
+    except AttributeError:
+        await send_embed(ctx, text='*tutoring session not found.*')
 
 
 async def get_next_student(ctx, tutor):
