@@ -50,8 +50,8 @@ class Course:
 
         return schedule
 
-    def next(self):
-        """get the next student in the queue.
+    def update_que(self):
+        """determine if the first student has been helped or need help.
 
         if the first student in the queue is being helped:
             then, move the student to the end of queue.
