@@ -10,7 +10,7 @@ class Tutor(commands.Cog):
         self.tutor_accounts = {}  # a dictionary of tutor objects. { key=discord_id: value=tutor_object }
 
     @commands.command()
-    async def tutor(self, ctx, arg=None, arg2=None):
+    async def tutor(self, ctx, arg=None, arg2=None, arg3=None):
         """listens for the tutor commands.
 
         Parameters
@@ -18,6 +18,7 @@ class Tutor(commands.Cog):
         :param Context ctx: the current Context.
         :param str arg: the first argument.
         :param str arg2: the second argument.
+        :param str arg3: the third argument.
         """
         # terminate function if user does not have tutor permissions.
         if await is_tutor(ctx) is False:
@@ -33,7 +34,7 @@ class Tutor(commands.Cog):
             return await stop_pull(ctx, self.tutor_accounts.get(ctx.author.id))
 
         if arg.lower() == 'move':
-            pass
+            return await move_student(ctx, self.tutor_accounts.get(ctx.author.id), arg2, arg3)
 
 
 async def announce_session_started(ctx, course_num, tutor_accounts):
@@ -367,6 +368,33 @@ async def add_reaction_to_message(message, author, choice_emojis, timeout):
         pass
 
     return reaction
+
+
+async def move_student(ctx, tutor, before, after):
+    """move a student from their current position to any position within the waitlist.
+
+    WARNING: positions are natural numbers while array is zero-number based.
+        therefore, position will be subtracted by 1 before index look up.
+    positions are passed in as 'str' to avoid parsing a character to 'int'.
+    positions are cast into 'int' to be used as indices for an array.
+
+    Parameters
+    ----------
+    :param Context ctx: the current Context.
+    :param 'Worker' tutor: the object that represents the tutor.
+    :param str before: the position in the queue of the student being moved.
+    :param str after: the position in the queue the student will move to.
+    """
+    # move student.
+    try:
+        tutor.course.move(int(before) - 1, int(after) - 1)
+    # TypeError - tutor passed in a character.
+    # ValueError - either position is None.
+    except (TypeError, ValueError):
+        pass
+
+    # display updated queue.
+    await display_queue(ctx, tutor.course)
 
 
 async def is_tutor(ctx):
