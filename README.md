@@ -18,29 +18,37 @@ This is a discord bot developed in Python and Discord.py Rewrite that provides t
 COMMAND | VARIABLE | DESCRIPTION
 | :---: | :---: | :---:
 .tutee hi | ----- | generate the student's pre-filled tutoring sign-in sheet link. 
+.tutee set | [full name][student id][course code][program degree] | store the student's information.
 .tutee hours | [course] | display the [course] tutoring location, hours, and tutor.
 .tutee join | ----- | add the student to the queue. 
 .tutee leave | ----- | remove the student from the queue. 
 .tutee que | ----- | display every student and their position in the queue.
-.tutee set | [full name][student id][course code][program degree] | store the student's information. 
+.tutee room | [*students] | generate a private room and give access to all [students] mentioned.
 
 - Features that are used by the Tutors during a tutoring session.
 
 COMMAND | VARIABLE | DESCRIPTION
 | :---: | :---: | :---:
-.tutor next | ----- | get the next tutee in tutor's waitlist. 
-.tutor start | [course] | ping students with [course] tag that tutoring started. 
+.tutor start | [course] | ping students with [course] tag that tutoring started.
+.tutor end | ----- | end tutor's tutoring session.
+.tutor que | ----- | display every student and their position in the tutor's queue.
+.tutor next | ----- | move the next student that is ready to the tutor's discord voice channel.
+.tutor stop | ----- | stop asking if the next student is ready to be tutored.
+.tutor move | [position 1][position 2] | move student in [position 1] to [position 2] in the queue. 
+.tutor swap | [position 1][position 2] | swap the student in [position 1] with the student in [position 2] in the queue. 
+.tutor kick | [position 1] | remove the student in [position 1] from the queue. 
+.tutor clear | ----- | remove all students from the tutor's queue. 
 
 # General Features
-- Features that can be used by other bots. 
+- Features that can be used by other discord bots. 
 - ESV API [documentation](https://api.esv.org/docs)
 - Weather API [documentation](https://openweathermap.org/current)
 
 COMMAND | VARIABLE | DESCRIPTION
 | :---: | :---: | :---:
-.oops | ----- | removes the last bot command made by the user.
-.cal | [expression] | display the results of [expression].
-.esv | [passage] | display given [passage].
+.oops | ----- | remove the last bot command made by the user.
+.cal | [expression] | display the calculated results of [expression].
+.esv | [passage] | display the Bible [passage] in English Standard Version.
 .weather | [city] | display the current weather for [city].
 .help | [category] | display the [category] help message.
 
@@ -49,5 +57,5 @@ COMMAND | VARIABLE | DESCRIPTION
 
 COMMAND | VARIABLE | DESCRIPTION
 | :---: | :---: | :---:
-.chapel | [week number] | display speakers and dates for [week number].
+.chapel | [week number] | display the chapel details for [week number].
 .java | [class] | display the most commonly used EGR222 java methods for given [class].
