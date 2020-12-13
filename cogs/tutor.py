@@ -111,6 +111,10 @@ async def get_next_student(ctx, tutor):
     :param Context ctx: the current Context.
     :param 'Worker' tutor: the object that represents a tutor.
     """
+    # terminate function if tutor is not in a voice channel.
+    if tutor.ctx.voice() is None:
+        return await send_embed(ctx, text='tutor\'s voice channel not found.')
+
     # display 'reaction message is still circulating' error message.
     if tutor.is_circulating():
         return await send_embed(ctx, text='*students are still responding.*')
@@ -120,17 +124,20 @@ async def get_next_student(ctx, tutor):
         return await send_embed(ctx, text='*there are no students to tutor!*')
 
     # get the next student in queue.
-    message = await send_embed(ctx, text='*waiting for the next student to respond.*')
+    message = await send_embed(ctx, text='*waiting for student to respond.*')
     tutor.course.next()
+
+    # display updated queue.
+    await display_queue(ctx, tutor.course, current_channel=False)
+
+    # get next student.
+    student = await find_next_student(ctx, tutor)
+    if student is not None:
+        student.being_helped = True
 
     # remove message.
     await message.delete()
-
-    # move next student to tutor's voice channel.
-    await find_next_student(ctx, tutor)
-
-    # display updated queue.
-    await display_queue(ctx, tutor.course)
+    tutor.reaction_msg = None
 
 
 async def find_next_student(ctx, tutor):
@@ -151,6 +158,7 @@ async def find_next_student(ctx, tutor):
     ----------
     :param Context ctx: the current Context.
     :param 'Worker' tutor: the tutor that called this function.
+    :return: the objet that represents the next student being helped.
     """
     ready_emoji = '👍🏼'
     not_ready_emoji = '👎🏼'
@@ -165,7 +173,7 @@ async def find_next_student(ctx, tutor):
 
         # tutor canceled getting the next student.
         if tutor.reaction_msg is None:
-            return
+            return None
 
         # student did not respond.
         if reaction is None:
@@ -174,26 +182,29 @@ async def find_next_student(ctx, tutor):
         if reaction is not None:
             # student is ready.
             if str(reaction) == ready_emoji:
-                await pull_student(tutor, student, index)
+                await pull_student(ctx, tutor, student, index)
+                return student
 
             # student is not ready.
             if str(reaction) == not_ready_emoji:
                 await send_embed(ctx, text=f'{student.ctx.mention()} skipped.')
 
-        # edge cases.
+        # if the last student leaves the queue.
         if tutor.course.que_is_empty():
             tutor.reaction_msg = None
-            return await display_queue(ctx, tutor.course)
+            await display_queue(ctx, tutor.course)
+            return None
 
         # get next student on the wait list.
         index = (index + 1) % tutor.course.size
 
 
-async def pull_student(tutor, student, index):
+async def pull_student(ctx, tutor, student, index):
     """move the given student to the given tutor voice channel.
 
     DISCORD VOICE PERMISSIONS NEEDED:
-        move members.
+        move members - to move members to tutor's voice channel.
+        manage roles - to give students permission to enter the tutor's voice channel.
     WARNING: bot cannot force anyone to join a voice channel.
         display a 'tutor not in voice channel' error message:
             if the tutor is not in a voice channel.
@@ -202,37 +213,34 @@ async def pull_student(tutor, student, index):
 
     Parameters
     ----------
+    :param Context ctx: the current Context.
     :param 'Worker' tutor: the object that represents the tutor.
     :param 'Student' student: the object that represents the student.
     :param int index: the int that represents the student position relative to the queue.
     """
-    tutor.reaction_msg = None
-    student.being_helped = True
-
     # move student to position 1
     tutor.course.move(index, 0)
 
-    # tutor not in voice channel.
-    if tutor.ctx.voice() is None:
-        return await send_embed(tutor.ctx, text=f'tutor\'s voice channel not found.')
+    # move student to tutor's voice channel.
+    try:
+        # store user's voice channel
+        student.prev_voice_channel = student.ctx.voice().channel
+        # move student to tutor's voice channel.
+        await student.ctx.member().move_to(tutor.ctx.voice().channel)
+        # display updated queue.
+        return await display_queue(ctx, tutor.course, direct_msg=True, announcement=True)
 
-    # student is not in voice channel.
-    if student.citx.voice() is None:
-        invite = await tutor.ctx.voice().channel.create_invite()  # generate invite for student.
-        invite.set_permission(student.ctx.member(), connect=True)  # give student permission to connect.
-        await bot.get_user(student.ctx.member()).send(invite)  # send student invite.
+    # student is not in a voice channel
+    except AttributeError:
+        # generate invite for student.
+        invite = await tutor.ctx.voice().channel.create_invite()
+        # give student permission to connect.
+        await tutor.ctx.voice().channel.set_permissions(student.ctx.member(), connect=True)
+        # send student invite.
+        await bot.get_user(student.ctx.discord_id()).send(invite)
 
-        # display tutor an update.
-        return await send_embed(tutor.ctx, text=f'waiting for {student.ctx.mention()} to join your voice channel.')
-
-    # store user's voice channel
-    student.prev_voice_channel = student.ctx.voice().channel
-
-    # then move student to tutor's voice channel.
-    await student.ctx.member().move_to(tutor.ctx.voice.channel)
-
-    # display updated queue.
-    return await display_queue(tutor.ctx, tutor.course, direct_msg=True, announcement=True)
+    # display tutor an update.
+    await send_embed(ctx, text=f'waiting for {student.ctx.mention()} to accept your invite.')
 
 
 async def confirm_student_is_ready(tutor, student, ready_emoji, not_ready_emoji):
@@ -250,7 +258,7 @@ async def confirm_student_is_ready(tutor, student, ready_emoji, not_ready_emoji)
                   f'{ready_emoji} - ready! connect me to the tutor.\n\n' \
                   f'{not_ready_emoji} - not yet, come back to me.'
 
-    tutor.reaction_msg = await send_embed(user=student.discord_id(), title=get_tutor_title(), text=description)
+    tutor.reaction_msg = await send_embed(user=student.ctx.discord_id(), title=get_tutor_title(), text=description)
     return await add_reaction_to_message(tutor.reaction_msg, student.discord_id, [ready_emoji, not_ready_emoji], 15)
 
 
