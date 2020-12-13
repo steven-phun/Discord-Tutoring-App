@@ -130,6 +130,9 @@ async def get_next_student(ctx, tutor):
     # display updated queue.
     await display_queue(ctx, tutor.course, current_channel=False)
 
+    # move student back to their previous channel.
+    await push_current_student(tutor.course.queue[0], tutor)
+
     # get next student.
     student = await find_next_student(ctx, tutor)
     if student is not None:
@@ -260,6 +263,37 @@ async def confirm_student_is_ready(tutor, student, ready_emoji, not_ready_emoji)
 
     tutor.reaction_msg = await send_embed(user=student.ctx.discord_id(), title=get_tutor_title(), text=description)
     return await add_reaction_to_message(tutor.reaction_msg, student.discord_id, [ready_emoji, not_ready_emoji], 15)
+
+
+async def push_current_student(student, tutor):
+    """move the current student to the voice channel they were in prior to joining the tutor's.
+
+    DISCORD VOICE PERMISSIONS NEEDED:
+        move members.
+
+    removes the connect permission for tutor's voice channel.
+    the student will only be moved their previous voice channel:
+        if they are in the same voice channel as the tutor's.
+    disconnect the student from the voice channel:
+        if the student join the tutor's voice channel via invite link
+            because they did not have a previous channel.
+    if the student decided to move themselves to another voice channel
+        then the bot will not move the student to avoid being put in an unwanted voice channel.
+
+    Parameters
+    ----------
+    :param Students student: the object that represents student being moved.
+    :param Tutors tutor: the object that represents a tutor.
+    """
+    # remove student's permission to access tutor's voice channel.
+    await tutor.ctx.voice().channel.set_permissions(student.ctx.member(), overwrite=None)
+
+    # move student back to their previous voice channel.
+    if tutor.ctx.voice().channel == student.ctx.voice().channel:
+        try:
+            await student.ctx.member().move_to(student.prev_voice_channel)
+        except discord.errors.HTTPException:  # previous channel no longer exists.
+            await student.ctx.member().move_to(None)  # disconnect student from voice channel.
 
 
 async def add_reaction_to_message(message, author, choice_emojis, timeout):
