@@ -210,7 +210,7 @@ async def sign_in(ctx, student_accounts):
                                 text=f'*you are already signed-in.*')
 
     # send student their custom sign-in link.
-    await send_embed(ctx, title=get_student_accounts_title(),
+    await send_embed(user=student.ctx.discord_id(), title=get_student_accounts_title(),
                      text=f'your sign-in sheet [click here]({await student.sign_in()}).')
 
 
@@ -284,7 +284,7 @@ async def get_queue(ctx, sessions, accounts):
         return await send_embed(ctx, embed)
 
     # get queue.
-    course = sessions[student.num()]
+    course = sessions[student.course_num()]
     await display_queue(ctx, course, announcement=False)
 
 
