@@ -29,6 +29,9 @@ class Tutor(commands.Cog):
         if arg.lower() == 'next':
             return await get_next_student(ctx, self.tutor_accounts.get(ctx.author.id))
 
+        if arg.lower() == 'stop':
+            return await stop_pull(ctx, self.tutor_accounts.get(ctx.author.id))
+
 
 async def announce_session_started(ctx, course_num, tutor_accounts):
     """prompt the students that the tutor is ready to tutor.
@@ -123,23 +126,21 @@ async def get_next_student(ctx, tutor):
     if tutor.course.que_is_empty():
         return await send_embed(ctx, text='*there are no students to tutor!*')
 
-    # get the next student in queue.
-    message = await send_embed(ctx, text='*waiting for student to respond.*')
-    tutor.course.next()
+    # update queue
+    tutor.course.update_que()
 
     # display updated queue.
-    await display_queue(ctx, tutor.course, current_channel=False)
+    await display_queue(ctx, tutor.course)
 
     # move student back to their previous channel.
-    await push_current_student(tutor.course.queue[0], tutor)
+    await push_current_student(ctx, tutor.course.queue[0], tutor)
 
     # get next student.
     student = await find_next_student(ctx, tutor)
     if student is not None:
         student.being_helped = True
 
-    # remove message.
-    await message.delete()
+    # tutor no longer has a reaction message circulating the queue.
     tutor.reaction_msg = None
 
 
@@ -235,15 +236,42 @@ async def pull_student(ctx, tutor, student, index):
 
     # student is not in a voice channel
     except AttributeError:
-        # generate invite for student.
-        invite = await tutor.ctx.voice().channel.create_invite()
-        # give student permission to connect.
-        await tutor.ctx.voice().channel.set_permissions(student.ctx.member(), connect=True)
-        # send student invite.
-        await bot.get_user(student.ctx.discord_id()).send(invite)
+        # get tutor's voice channel
+        try:
+            # generate invite for student.
+            invite = await tutor.ctx.voice().channel.create_invite()
+            # give student permission to connect.
+            await tutor.ctx.voice().channel.set_permissions(student.ctx.member(), connect=True)
+            # send student invite.
+            await bot.get_user(student.ctx.discord_id()).send(invite)
+            # display tutor an update.
+            await send_embed(ctx, text=f'waiting for {student.ctx.mention()} to accept your invite.')
 
-    # display tutor an update.
-    await send_embed(ctx, text=f'waiting for {student.ctx.mention()} to accept your invite.')
+        # tutor's voice channel not found.
+        except AttributeError:
+            await send_embed(ctx, text='tutor voice channel not found.')
+
+
+async def stop_pull(ctx, tutor):
+    """removes the reaction message sent by a tutor.
+
+    display 'message not found' error message:
+        if tutor does not have a reaction message circulating the queue.
+
+    Parameters
+    ----------
+    :param Context ctx: the current Context.
+    :param 'Worker' tutor: the object that represents the tutor.
+    """
+    # delete reaction message
+    try:
+        await tutor.reaction_msg.delete()
+        await send_embed(ctx, text='no longer asking for the next student.')
+        tutor.reaction_msg = None
+
+    # no reaction message to delete.
+    except AttributeError:
+        await send_embed(ctx, text='there are no reaction message to stop.')
 
 
 async def confirm_student_is_ready(tutor, student, ready_emoji, not_ready_emoji):
@@ -265,7 +293,7 @@ async def confirm_student_is_ready(tutor, student, ready_emoji, not_ready_emoji)
     return await add_reaction_to_message(tutor.reaction_msg, student.discord_id, [ready_emoji, not_ready_emoji], 15)
 
 
-async def push_current_student(student, tutor):
+async def push_current_student(ctx, student, tutor):
     """move the current student to the voice channel they were in prior to joining the tutor's.
 
     DISCORD VOICE PERMISSIONS NEEDED:
@@ -282,18 +310,22 @@ async def push_current_student(student, tutor):
 
     Parameters
     ----------
+    :param Context ctx: the current Context.
     :param Students student: the object that represents student being moved.
     :param Tutors tutor: the object that represents a tutor.
     """
-    # remove student's permission to access tutor's voice channel.
-    await tutor.ctx.voice().channel.set_permissions(student.ctx.member(), overwrite=None)
+    try:
+        # remove student's permission to access tutor's voice channel.
+        await tutor.ctx.voice().channel.set_permissions(student.ctx.member(), overwrite=None)
 
-    # move student back to their previous voice channel.
-    if tutor.ctx.voice().channel == student.ctx.voice().channel:
-        try:
-            await student.ctx.member().move_to(student.prev_voice_channel)
-        except discord.errors.HTTPException:  # previous channel no longer exists.
-            await student.ctx.member().move_to(None)  # disconnect student from voice channel.
+        if tutor.ctx.voice().channel == student.ctx.voice().channel:
+            # move student back to their previous voice channel.
+            try:
+                await student.ctx.member().move_to(student.prev_voice_channel)
+            except discord.errors.HTTPException:  # previous channel no longer exists.
+                await student.ctx.member().move_to(None)  # disconnect student from voice channel.
+    except AttributeError:
+        await send_embed(ctx, title='tutor\'s voice channel not found.')
 
 
 async def add_reaction_to_message(message, author, choice_emojis, timeout):
