@@ -60,13 +60,7 @@ class Course:
         # move currently helped student to the end of the queue.
         if self.queue[0].being_helped:
             student = self.move(0, self.size)
-
-            if student is not None:
-                student.times_helped += 1
-            return
-
-        # mark first student as being helped.
-        self.queue[0].being_helped = True
+            student.times_helped += 1
 
     def move(self, position_1, position_2):
         """move the student in the first position to the second position in the queue.
