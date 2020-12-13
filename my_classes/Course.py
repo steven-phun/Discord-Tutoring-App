@@ -67,8 +67,8 @@ class Course:
 
         Parameters
         ----------
-        :param int position_1: the first position in the queue.
-        :param int position_2: the second position in the queue.
+        :param int position_1: the number position in the queue.
+        :param int position_2: the number position in the queue.
         """
         # move student to their new position.
         try:
@@ -77,7 +77,39 @@ class Course:
             self.queue.insert(position_2, student)
             return student
         except IndexError:
-            pass
+            return False
+
+    def swap(self, position_1, position_2):
+        """swap the student in the first position with the student in the second.
+
+        Parameters
+        ----------
+        :param int position_1: the number position in the queue.
+        :param int position_2: the number position in the queue.
+        """
+        # move student to their new position.
+        try:
+            self.queue[position_1], self.queue[position_2] = self.queue[position_2], self.queue[position_1]
+        except IndexError:
+            return False
+
+    def kick(self, position):
+        """remove the student at the given position in queue.
+
+        Parameters
+        ----------
+        :param int position: the number position in the queue.
+        """
+        try:
+            del self.queue[position]
+            self.size -= 1
+        except IndexError:
+            return False
+
+    def clear(self):
+        """remove every student in queue."""
+        self.queue.clear()
+        self.size = 0
 
     def append(self, student):
         """appends given student to the tutoring queue.
@@ -112,11 +144,12 @@ class Course:
         """
         # remove student from queue.
         try:
-            self.queue.remove(student)
             self.size -= 1
+            return self.queue.remove(student)
+
         # display error message.
         except ValueError:
-            pass
+            return None
 
     def queue_title(self):
         """:return: a str that represents the default embed title for this command."""

@@ -27,6 +27,8 @@ class Tutor(commands.Cog):
         if arg.lower() == 'start' or self.tutor_accounts.get(ctx.author.id) is None:
             await announce_session_started(ctx, arg2, self.tutor_accounts)
 
+        if arg.lower() == 'que':
+            return await display_queue(ctx, self.tutor_accounts.get(ctx.author.id).course)
         if arg.lower() == 'next':
             return await get_next_student(ctx, self.tutor_accounts.get(ctx.author.id))
 
@@ -34,7 +36,16 @@ class Tutor(commands.Cog):
             return await stop_pull(ctx, self.tutor_accounts.get(ctx.author.id))
 
         if arg.lower() == 'move':
-            return await move_student(ctx, self.tutor_accounts.get(ctx.author.id), arg2, arg3)
+            return await edit_student_in_queue(ctx, self.tutor_accounts.get(ctx.author.id), arg2, arg3, move=True)
+
+        if arg.lower() == 'swap':
+            return await edit_student_in_queue(ctx, self.tutor_accounts.get(ctx.author.id), arg2, arg3, swap=True)
+
+        if arg.lower() == 'kick':
+            return await edit_student_in_queue(ctx, self.tutor_accounts.get(ctx.author.id), arg2, kick=True)
+
+        if arg.lower() == 'clear':
+            return await edit_student_in_queue(ctx, self.tutor_accounts.get(ctx.author.id), clear=True)
 
 
 async def announce_session_started(ctx, course_num, tutor_accounts):
@@ -370,31 +381,49 @@ async def add_reaction_to_message(message, author, choice_emojis, timeout):
     return reaction
 
 
-async def move_student(ctx, tutor, before, after):
-    """move a student from their current position to any position within the waitlist.
+async def edit_student_in_queue(ctx, tutor, first=None, second=None, move=False, swap=False, kick=False, clear=False):
+    """modify student's position in the queue.
 
     WARNING: positions are natural numbers while array is zero-number based.
         therefore, position will be subtracted by 1 before index look up.
     positions are passed in as 'str' to avoid parsing a character to 'int'.
     positions are cast into 'int' to be used as indices for an array.
+    the queue is displayed to confirm the tutor's modification was successful.
+    the queue will not be displayed if the tutor's modification was unsuccessful.
 
     Parameters
     ----------
     :param Context ctx: the current Context.
     :param 'Worker' tutor: the object that represents the tutor.
-    :param str before: the position in the queue of the student being moved.
-    :param str after: the position in the queue the student will move to.
+    :param str first: the number position in the queue.
+    :param str second: the number position in the queue.
+    :param bool move: if True move the student from the first position to the second.
+    :param bool swap: if True swap the two student in first position and with the second.
+    :param bool kick: if True kick the student in given position from the queue.
+    :param bool clear: if True remove every student from the queue.
     """
-    # move student.
+    # edit student(s) position in queue.
     try:
-        tutor.course.move(int(before) - 1, int(after) - 1)
+        # if queue should be printed.
+        display = True
+
+        if move is True:
+            display = tutor.course.move(int(first) - 1, int(second) - 1)
+        if swap is True:
+            display = tutor.course.swap(int(first) - 1, int(second) - 1)
+        if kick is True:
+            display = tutor.course.kick(int(first) - 1)
+        if clear is True:
+            tutor.course.clear()
+
+        if display is not False:
+            # display updated queue.
+            await display_queue(ctx, tutor.course)
+
     # TypeError - tutor passed in a character.
     # ValueError - either position is None.
     except (TypeError, ValueError):
         pass
-
-    # display updated queue.
-    await display_queue(ctx, tutor.course)
 
 
 async def is_tutor(ctx):
