@@ -32,6 +32,9 @@ class Tutor(commands.Cog):
         if arg.lower() == 'stop':
             return await stop_pull(ctx, self.tutor_accounts.get(ctx.author.id))
 
+        if arg.lower() == 'move':
+            pass
+
 
 async def announce_session_started(ctx, course_num, tutor_accounts):
     """prompt the students that the tutor is ready to tutor.
@@ -136,9 +139,7 @@ async def get_next_student(ctx, tutor):
     await push_current_student(ctx, tutor.course.queue[0], tutor)
 
     # get next student.
-    student = await find_next_student(ctx, tutor)
-    if student is not None:
-        student.being_helped = True
+    await find_next_student(ctx, tutor)
 
     # tutor no longer has a reaction message circulating the queue.
     tutor.reaction_msg = None
@@ -177,7 +178,7 @@ async def find_next_student(ctx, tutor):
 
         # tutor canceled getting the next student.
         if tutor.reaction_msg is None:
-            return None
+            return
 
         # student did not respond.
         if reaction is None:
@@ -187,7 +188,8 @@ async def find_next_student(ctx, tutor):
             # student is ready.
             if str(reaction) == ready_emoji:
                 await pull_student(ctx, tutor, student, index)
-                return student
+                student.being_helped = True
+                return
 
             # student is not ready.
             if str(reaction) == not_ready_emoji:
@@ -196,8 +198,7 @@ async def find_next_student(ctx, tutor):
         # if the last student leaves the queue.
         if tutor.course.que_is_empty():
             tutor.reaction_msg = None
-            await display_queue(ctx, tutor.course)
-            return None
+            return await display_queue(ctx, tutor.course)
 
         # get next student on the wait list.
         index = (index + 1) % tutor.course.size
