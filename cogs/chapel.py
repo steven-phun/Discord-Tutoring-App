@@ -7,17 +7,11 @@ class Chapel(commands.Cog):
 
     @commands.command()
     async def chapel(self, ctx, arg: str = None):
-        # print the entire chapel schedule.
-        if arg is None:
-            return await get_chapel_week(ctx)
-
-        # print the chapel schedule of a specified week.
-        if arg.isdigit():
-            week_num = arg
-            return await get_chapel_week(ctx, week_num)
+        # display the chapel schedule for given week.
+        return await get_chapel_week(ctx, arg)
 
 
-async def get_chapel_week(ctx, week_num=None):
+async def get_chapel_week(ctx, week_num):
     """looks up the chapel schedule of a given week.
 
     chapel schedule is stored in a local .json file
@@ -31,8 +25,12 @@ async def get_chapel_week(ctx, week_num=None):
     :param str week_num: the chapel week to print.
     :return: a str representation of the chapel schedule.
     """
+    # week number must be none or a digit.
+    if week_num is not None and not week_num.isdigit():
+        return
+
     # get chapel schedule.
-    contents = json_to_dict('json_files/chapel/chapel_schedule.json')
+    contents = json_to_dict('json_files/chapel/schedule.json')
 
     schedule = []
     for week in contents:
@@ -55,9 +53,15 @@ async def get_chapel_week(ctx, week_num=None):
 
     # print error message.
     if len(description) == 0:
-        description = f'*no scheduled chapel for week {week_num}.*'
+        await send_embed(ctx, title=get_chapel_title(), text=f'*no scheduled chapel for week {week_num}.*')
 
-    await send_embed(ctx, title='⛪ Chapel Schedule', text=description)
+    # display chapel information.
+    await send_embed(ctx, title=get_chapel_title(), text=description)
+
+
+def get_chapel_title():
+    """:return: a str that represents the default embed title for this command."""
+    return '⛪ Chapel Schedule'
 
 
 # connect this cog to bot.
