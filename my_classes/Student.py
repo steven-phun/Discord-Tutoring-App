@@ -1,6 +1,6 @@
 import os
 import gspread
-from datetime import date
+from datetime import date, datetime
 from cryptography.fernet import Fernet
 from my_classes.Context import Context
 
@@ -89,16 +89,14 @@ class Student:
         # verify student's sign-in.
         for data in content:
             # only check entries that were submitted today.
-            if data['Date'] != str(date.today()):
-                break
+            if data['Timestamp'].split(' ')[0] != date.strftime(date.today(), '%m/%d/%Y'):
+                return False
             # check if student signed-in.
             if data['Student Name'] == self.name() and \
                     str(data['Student ID']) == self.student_id and \
                     data['Course Code'] == self.course_code and \
                     data['Degree'] == self.program_degree:
                 return True
-
-        return False
 
     def name(self):
         """:return: str of the student's first and last name."""
