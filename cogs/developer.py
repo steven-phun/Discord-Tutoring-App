@@ -7,24 +7,31 @@ from cogs.bot import bot, send_embed, json_to_dict, to_member
 class Developer(commands.Cog):
     """listens for the bot developer commands.
 
+    REQUIRED: developer's role.
+
     developer commands are reserved only for developers that works on this bot.
     """
-
     @commands.command()
     async def dev(self, ctx, arg, arg2=None):
-        # check for dev role.
+        # check if member has the dev role.
         if is_developer(ctx) is False:
             return
 
-        # print the developer help message.
+        # display the developer's help message.
         if arg.lower() == 'help':
             return await display_dev_help_msg(ctx)
 
+        # display all available cogs.
         if arg.lower() == 'app':
             await display_available_apps(ctx)
 
-        # load or unload cogs file.
-        await modify_cogs_file(ctx, arg, arg2)
+        # display a blank google form link.
+        if arg.lower() == 'form':
+            await display_blank_google_form(ctx)
+
+        # load, unload, or reload a cog.
+        if arg.lower() == 'load' or arg.lower() == 'unload' or arg.lower() == 'reload':
+            await modify_cogs_file(ctx, arg, arg2)
 
 
 async def modify_cogs_file(ctx, action, cog):
@@ -95,6 +102,18 @@ async def display_available_apps(ctx):
             description += f'- {file.replace(".py", "")}\n'
 
     await send_embed(ctx, title=get_dev_title(), text=description)
+
+
+async def display_blank_google_form(ctx):
+    """display a non prefilled google form for student to sign in with.
+
+    this function is here in case the bot is unable to provide the students their prefilled link.
+
+    Parameters
+    ----------
+    :param Context ctx: the current Context.
+    """
+    await send_embed(ctx, text=f'sign-in sheet [click here]({os.getenv("GOOGLE_FORM_LINK")})')
 
 
 def get_dev_title():

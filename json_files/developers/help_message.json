@@ -5,7 +5,10 @@
     "dev reload app-name": "reload the app's cog."
   },
   "Applications": {
-    "dev app": "display all available applications."
+    "dev cogs": "display all available application."
+  },
+  "Google Form": {
+    "dev form": "display a blank google form link."
   },
   "Help": {
     "dev help": "show this help message."
