@@ -6,7 +6,8 @@ from my_classes.Context import Context
 
 
 class Student:
-    def __init__(self, ctx, first_name: str, last_name: str, student_id: str, course_code: str, program_degree: str, discord_id: int):
+    def __init__(self, ctx, first_name: str, last_name: str, student_id: str, course_code: str, program_degree: str,
+                 discord_id: int):
         self.ctx = Context(ctx)  # the object that represents this member's Content.
 
         self.first = first_name  # the student's first name.
@@ -48,7 +49,7 @@ class Student:
         :return: a str that represents the student's custom sign-in link.
         """
         # generate custom sign-in link.
-        return f'https://docs.google.com/forms/d/e/1FAIpQLSeLjQ8XunqxtzlWGHKB5Kt52-ZAyBqPiyBmLPfNcDuYhb5dsg/viewform?usp=pp_url&entry.79479348={date.today()}&entry.1178312123={self.course_code}&entry.1604735080={None}1&entry.174697377={self.first}+{self.last}&entry.1854395744={self.student_id}&entry.905892592={self.program_degree}'
+        return f'https://docs.google.com/forms/d/e/1FAIpQLSeLjQ8XunqxtzlWGHKB5Kt52-ZAyBqPiyBmLPfNcDuYhb5dsg/viewform?usp=pp_url&entry.1178312123={self.course_code}&entry.1604735080={None}&entry.174697377={self.first}+{self.last}&entry.1854395744={self.student_id}+&entry.905892592={self.program_degree}'
 
     def verify(self):
         """verify student if they submitted their sign-in sheet via google forms.
