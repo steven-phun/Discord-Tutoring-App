@@ -120,7 +120,7 @@ async def notify_devs_when_ready():
             if role.id == int(os.getenv("DEVELOPERS_ROLE_ID")):
                 try:
                     await send_embed(user=user.id, text='i am online!')
-                except:  # todo edit bare except.
+                except:
                     print(f'{user} has message from non-friends disabled.')
 
 
@@ -156,7 +156,7 @@ async def send_courses_reaction_message(ctx, course_code):
 
     if reaction.validate(course_code) is False:
         # display reaction message.
-        msg = await send_embed(channel=ctx.channel.id, text=reaction.message)
+        msg = await send_embed(channel=ctx.channel.id, text=reaction.message())
         student_choice = await reaction.add(bot, msg, ctx.author.id, 30)
 
         # validate student's reaction choice.
@@ -164,9 +164,9 @@ async def send_courses_reaction_message(ctx, course_code):
             return None
 
         # update class section.
-        for emoji in reaction.emojis:
+        for emoji in reaction.course_emojis():
             if str(student_choice) == emoji:
-                return reaction.emojis[emoji]
+                return reaction.course_emojis()[emoji]
 
     return course_code.upper()
 
@@ -277,7 +277,7 @@ def initialize_sessions():
     """
     sessions = {}
 
-    for course_code in Reaction().courses:
+    for course_code in Reaction().course_codes():
         course = Course(course_code)
         sessions[course.num()] = course
 
