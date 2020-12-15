@@ -4,11 +4,6 @@ import asyncio.exceptions
 
 
 class Reaction:
-    def __init__(self):
-        self.courses = get_course_codes()  # a dictionary of all the available course code and their emoji.
-        self.emojis = get_course_emojis()  # a dictionary of emoji that corresponds to a course code.
-        self.message = get_reaction_message()  # the reaction message to send.
-
     async def add(self, bot, message, author, timeout):
         """add reactions to a message and wait for an intended author to respond to it.
 
@@ -27,12 +22,12 @@ class Reaction:
         :return: str: the emoji that represents the intended author's reaction.
         """
         # add reactions to the message.
-        for emoji in self.emojis:
+        for emoji in self.course_emojis():
             await message.add_reaction(emoji)
 
         # function to validate author and reaction added.
         def check(reaction, user):
-            return user.id == author and str(reaction.emoji) in self.emojis
+            return user.id == author and str(reaction.emoji) in self.course_emojis()
 
         # wait for reaction.
         try:
@@ -58,51 +53,48 @@ class Reaction:
         :param str course_code : the course code to validate.
         :return: True if given course code is available for tutoring, otherwise return False.
         """
-        return course_code is not None and course_code.upper() in self.courses
+        return course_code is not None and course_code.upper() in self.course_codes()
 
+    def course_codes(self):
+        """stores all available course code and their corresponding emoji in a dictionary.
 
-def get_course_codes():
-    """stores all available course code and their corresponding emoji in a dictionary.
+        :return: a dictionary key=course code, value=corresponding emoji.
+        """
+        dictionary = {}
 
-    :return: a dictionary key=course code, value=corresponding emoji.
-    """
-    dictionary = {}
+        courses = get_course_from_json()
+        for course in courses:
+            dictionary[course] = courses[course]['emoji']
 
-    courses = get_course_from_json()
-    for course in courses:
-        dictionary[course] = courses[course]['emoji']
+        return dictionary
 
-    return dictionary
+    def course_emojis(self):
+        """stores the reverse of get_course_codes() where they keys are not the values and the values are not the keys.
 
+        :return: a new dictionary that reverses the keys and values of get_course_codes().
+        """
+        course_emojis = {}
+        for key, value in self.course_codes().items():
+            course_emojis[value] = key
 
-def get_course_emojis():
-    """stores the reverse of get_course_codes() where they keys are not the values and the values are not the keys.
+        return course_emojis
 
-    :return: a new dictionary that reverses the keys and values of get_course_codes().
-    """
-    course_emojis = {}
-    for key, value in get_course_codes().items():
-        course_emojis[value] = key
+    def reaction_message(self):
+        """generate a string all available courses for a student to choose from.
 
-    return course_emojis
+        :return: a str representation for the embed description message.
+        """
+        string = f'*Section Not Found.*\n\n' \
+                 f'did you mean one of these?\n'
 
+        courses = get_course_from_json()
+        for course in courses:
+            emoji = courses[course]["emoji"]
+            description = courses[course]["course"]
 
-def get_reaction_message():
-    """generate a string all available courses for a student to choose from.
+            string += f'{emoji} - {course} {description}\n'
 
-    :return: a str representation for the embed description message.
-    """
-    string = f'*Section Not Found.*\n\n' \
-             f'did you mean one of these?\n'
-
-    courses = get_course_from_json()
-    for course in courses:
-        emoji = courses[course]["emoji"]
-        description = courses[course]["course"]
-
-        string += f'{emoji} - {course} {description}\n'
-
-    return string
+        return string
 
 
 def get_course_from_json():
