@@ -79,7 +79,7 @@ class Reaction:
 
         return course_emojis
 
-    def reaction_message(self):
+    def message(self):
         """generate a string all available courses for a student to choose from.
 
         :return: a str representation for the embed description message.
