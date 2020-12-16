@@ -33,6 +33,9 @@ class Tutee(commands.Cog):
         if arg.lower() == 'hi':
             return await sign_in(ctx, tutoring_accounts)
 
+        if arg.lower() == 'set':
+            return await setup_account(ctx, tutoring_accounts, arg2, arg3, arg4, arg5, arg6)
+
         if arg.lower() == 'hours':
             return await display_tutoring_hours(ctx, tutoring_sessions.get(arg2))
 
@@ -47,9 +50,6 @@ class Tutee(commands.Cog):
 
         if arg.lower() == 'room':
             return await generate_private_voice_channel(ctx, [arg2, arg3, arg4, arg5, arg6])
-
-        if arg.lower() == 'set':
-            return await setup_account(ctx, tutoring_accounts, arg2, arg3, arg4, arg5, arg6)
 
 
 async def setup_account(ctx, accounts, first=None, last=None, student_id=None, code=None, degree=None):
@@ -146,8 +146,7 @@ async def display_tutoring_hours(ctx, course):
     if course is None:
         return await display_error_msg(ctx)
 
-    embed = course.hours_embed(await course.hours())
-    await send_embed(ctx, embed)
+    await send_embed(ctx, title=course.hours_title(), text=course.hours())
 
 
 async def add_student_to_queue(ctx, sessions, accounts):
