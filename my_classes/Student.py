@@ -1,5 +1,6 @@
 import os
 import gspread
+import json
 from datetime import date, datetime
 from cryptography.fernet import Fernet
 from my_classes.Context import Context
@@ -49,7 +50,7 @@ class Student:
         :return: a str that represents the student's custom sign-in link.
         """
         # generate custom sign-in link.
-        return f'https://docs.google.com/forms/d/e/1FAIpQLSeLjQ8XunqxtzlWGHKB5Kt52-ZAyBqPiyBmLPfNcDuYhb5dsg/viewform?usp=pp_url&entry.1178312123={self.course_code}&entry.1604735080={None}&entry.174697377={self.first}+{self.last}&entry.1854395744={self.student_id}+&entry.905892592={self.program_degree}'
+        return f'https://docs.google.com/forms/d/e/1FAIpQLSeLjQ8XunqxtzlWGHKB5Kt52-ZAyBqPiyBmLPfNcDuYhb5dsg/viewform?usp=pp_url&entry.1178312123={self.course_code}&entry.1604735080={self.tutor_name()}&entry.174697377={self.first}+{self.last}&entry.1854395744={self.student_id}+&entry.905892592={self.program_degree}'
 
     def verify(self):
         """verify student if they submitted their sign-in sheet via google forms.
@@ -98,6 +99,38 @@ class Student:
                     data['Course Code'] == self.course_code and \
                     data['Degree'] == self.program_degree:
                 return True
+
+    def tutor_name(self):
+        """get the name of the tutor that is tutoring the student's respective course.
+
+        tutor's name is obtained by looking at the tutoring hours
+            and seeing which tutor's timeslot fall between the current time this command was called.
+        the tutoring hours are stored in a local .json file in a 24-hour format.
+        """
+        # get tutoring schedule from a local .json file.
+        with open(f'json_files/tutoring_hours/{self.course_code}.json') as file:
+            schedule = json.load(file)
+
+        # look up today's day of the week in schedule.
+        today_schedule = schedule[datetime.now().strftime('%A')]
+
+        # get tutor's name.
+        tutor_name = None
+        for tutor in today_schedule:
+            # get fields from dictionary.
+            start_hour = today_schedule[tutor]['start_hour']
+            start_minute = today_schedule[tutor]['start_minute']
+            end_hour = today_schedule[tutor]['end_hour']
+            end_minute = today_schedule[tutor]['end_minute']
+            # convert fields to time object.
+            start_time = datetime.now().replace(hour=start_hour, minute=start_minute)
+            end_time = datetime.now().replace(hour=end_hour, minute=end_minute)
+
+            # get tutor's name
+            if start_time < datetime.now() < end_time:
+                tutor_name = tutor
+
+        return tutor_name
 
     def name(self):
         """:return: str of the student's first and last name."""
