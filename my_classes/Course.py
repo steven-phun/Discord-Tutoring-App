@@ -10,7 +10,7 @@ class Course:
         self.queue = []  # array of student objects that represents the tutoring queue.
         self.size = 0  # the number of students in the queue.
 
-    async def hours(self):
+    def hours(self):
         """get the location, tutoring hours (12 hours format), and tutor's name for given course.
 
         converts tutoring hours from a .json file to a str to be printed.
@@ -155,15 +155,9 @@ class Course:
         """:return: a str that represents the default embed title for this command."""
         return f'📋 {self.code} Queue'
 
-    def hours_embed(self, description=''):
-        """generate a default tutoring hours embed.
-
-        Parameters
-        ----------
-        :param str description: the description to initialize the embed description with.
-        :return: a discord.Embed.
-        """
-        return discord.Embed(title=f'🕘 {self.code} Tutoring Hours', description=description)
+    def hours_title(self):
+        """:return: a str that represents the default embed title for this command."""
+        return f'🕘 {self.code} Tutoring Hours'
 
     def num(self):
         """convert the course code to just the course number.
