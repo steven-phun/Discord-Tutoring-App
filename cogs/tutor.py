@@ -349,6 +349,10 @@ async def push_current_student(ctx, student, tutor):
     :param Students student: the object that represents student being moved.
     :param Tutors tutor: the object that represents a tutor.
     """
+    # only move student that has been helped to the previous voice channel.
+    if student.being_helped is False:
+        return
+
     try:
         # remove student's permission to access tutor's voice channel.
         await tutor.ctx.voice().channel.set_permissions(student.ctx.member(), overwrite=None)
