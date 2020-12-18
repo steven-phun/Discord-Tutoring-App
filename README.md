@@ -53,7 +53,7 @@ COMMAND | VARIABLE | DESCRIPTION
 .help | [category] | display the [category] help message.
 
 # CBU Features
-- Features that are specific to California Baptist University. 
+- Features that are specific to College of Engineering at California Baptist University. 
 
 COMMAND | VARIABLE | DESCRIPTION
 | :---: | :---: | :---:
