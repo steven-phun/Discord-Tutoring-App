@@ -24,30 +24,39 @@ class Tutor(commands.Cog):
         if await is_tutor(ctx) is False:
             return
 
+        # end tutor's tutoring session.
         if arg.lower() == 'end':
             return await end_session(ctx, self.tutor_accounts.get(ctx.author.id), self.tutor_accounts)
 
+        # ping students that the tutor's session started.
         if arg.lower() == 'start' or self.tutor_accounts.get(ctx.author.id) is None:
             await announce_session_started(ctx, arg2, self.tutor_accounts)
 
+        # display the current queue.
         if arg.lower() == 'que':
             return await display_queue(ctx, self.tutor_accounts.get(ctx.author.id).course)
 
+        # get the next student in the queue.
         if arg.lower() == 'next':
             return await get_next_student(ctx, self.tutor_accounts.get(ctx.author.id))
 
+        # removes the reaction message to get the next student in queue.
         if arg.lower() == 'stop':
             return await stop_pull(ctx, self.tutor_accounts.get(ctx.author.id))
 
+        # moves a student to any position in the queue.
         if arg.lower() == 'move':
             return await edit_student_in_queue(ctx, self.tutor_accounts.get(ctx.author.id), arg2, arg3, move=True)
 
+        # swap the position of two students in queue.
         if arg.lower() == 'swap':
             return await edit_student_in_queue(ctx, self.tutor_accounts.get(ctx.author.id), arg2, arg3, swap=True)
 
-        if arg.lower() == 'kick':
-            return await edit_student_in_queue(ctx, self.tutor_accounts.get(ctx.author.id), arg2, kick=True)
+        # removes a student from the queue.
+        if arg.lower() == 'remove':
+            return await edit_student_in_queue(ctx, self.tutor_accounts.get(ctx.author.id), arg2, remove=True)
 
+        # remove every student from the queue.
         if arg.lower() == 'clear':
             return await edit_student_in_queue(ctx, self.tutor_accounts.get(ctx.author.id), clear=True)
 
@@ -407,7 +416,7 @@ async def add_reaction_to_message(message, author, choice_emojis, timeout):
     return reaction
 
 
-async def edit_student_in_queue(ctx, tutor, first=None, second=None, move=False, swap=False, kick=False, clear=False):
+async def edit_student_in_queue(ctx, tutor, first=None, second=None, move=False, swap=False, remove=False, clear=False):
     """modify student's position in the queue.
 
     WARNING: positions are natural numbers while array is zero-number based.
@@ -425,7 +434,7 @@ async def edit_student_in_queue(ctx, tutor, first=None, second=None, move=False,
     :param str second: the number position in the queue.
     :param bool move: if True move the student from the first position to the second.
     :param bool swap: if True swap the two student in first position and with the second.
-    :param bool kick: if True kick the student in given position from the queue.
+    :param bool remove: if True kick the student in given position from the queue.
     :param bool clear: if True remove every student from the queue.
     """
     # edit student(s) position in queue.
@@ -437,7 +446,7 @@ async def edit_student_in_queue(ctx, tutor, first=None, second=None, move=False,
             display = tutor.course.move(int(first) - 1, int(second) - 1)
         if swap is True:
             display = tutor.course.swap(int(first) - 1, int(second) - 1)
-        if kick is True:
+        if remove is True:
             display = tutor.course.kick(int(first) - 1)
         if clear is True:
             tutor.course.clear()

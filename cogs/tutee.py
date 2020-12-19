@@ -30,24 +30,31 @@ class Tutee(commands.Cog):
         # not a command.
         update_students_ctx(ctx)
 
+        # send student their custom sign-in link.
         if arg.lower() == 'hi':
             return await sign_in(ctx, tutoring_accounts)
 
+        # set up a student's tutoring account.
         if arg.lower() == 'set':
             return await setup_account(ctx, tutoring_accounts, arg2, arg3, arg4, arg5, arg6)
 
+        # display the tutoring information for given course code.
         if arg.lower() == 'hours':
             return await display_tutoring_hours(ctx, tutoring_sessions.get(arg2))
 
+        # add the student to their respective queue.
         if arg.lower() == 'join':
             return await add_student_to_queue(ctx, tutoring_sessions, tutoring_accounts)
 
+        # remove the student in their respective queue.
         if arg.lower() == 'leave':
             return await remove_student_from_queue(ctx, tutoring_sessions, tutoring_accounts)
 
+        # display the current queue.
         if arg.lower() == 'que':
             return await get_queue(ctx, tutoring_sessions, tutoring_accounts)
 
+        # generate a private voice channel.
         if arg.lower() == 'room':
             return await generate_private_voice_channel(ctx, [arg2, arg3, arg4, arg5, arg6])
 
