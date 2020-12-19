@@ -17,12 +17,12 @@ This is a discord bot developed in Python and Discord.py Rewrite that provides t
 
 COMMAND | VARIABLE | DESCRIPTION
 | :---: | :---: | :---:
-.tutee hi | ----- | generate the student's pre-filled tutoring sign-in sheet link. 
 .tutee set | [full name][student id][course code][program degree] | store the student's information.
+.tutee hi | ----- | generate the student's pre-filled tutoring sign-in sheet link. 
 .tutee hours | [course] | display the [course] tutoring location, hours, and tutor.
 .tutee join | ----- | add the student to the queue. 
 .tutee leave | ----- | remove the student from the queue. 
-.tutee que | ----- | display every student and their position in the queue.
+.tutee que | ----- | display every student and their position in their respective queue.
 .tutee room | [*students] | generate a private room and give access to all [students] mentioned.
 
 - Features that are used by the Tutors during a tutoring session.
@@ -36,7 +36,7 @@ COMMAND | VARIABLE | DESCRIPTION
 .tutor stop | ----- | stop asking if the next student is ready to be tutored.
 .tutor move | [position 1][position 2] | move student in [position 1] to [position 2] in the queue. 
 .tutor swap | [position 1][position 2] | swap the student in [position 1] with the student in [position 2] in the queue. 
-.tutor kick | [position 1] | remove the student in [position 1] from the queue. 
+.tutor remove | [position 1] | remove the student in [position 1] from the queue. 
 .tutor clear | ----- | remove all students from the tutor's queue. 
 
 # General Features

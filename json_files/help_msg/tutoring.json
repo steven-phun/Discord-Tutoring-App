@@ -1,25 +1,25 @@
 {
   "Tutoring": {
-    "tutee set james bond 007007 222": "will setup an account with james bond as the student name, 007007 as the student id, 222 as the class section",
-    "tutee hi": "will get your sign-in url and add you to the waitlist",
+    "tutee set james bond 007007 egr222": "will setup an account with james bond as the student name, 007007 as the student id, EGR222 as the class section",
+    "tutee hi": "will get your custom sign-in link",
     "tutee hi robbie": "same as above, but overrides tutor's name with robbie",
-    "tutee bye": "will remove you from the waitlist",
-    "tutee wl 222": "show the waitlist for egr222",
-    "tutee 222": "show the tutoring hours for egr222",
-    "tutee room @student1 ... @studentN": "makes a private room and invite everyone you mention",
+    "tutee hours 222": "show the tutoring hours for EGR222",
+    "tutee join": "will add you to the queue",
+    "tutee leave": "will remove you from the queue",
+    "tutee que": "show your respective class' queue",
+    "tutee room @student1 ... @studentN": "makes a private room and invite everyone you mention to join",
     "tutee": "*commands with 222 can be replaced with 227 or 312*"
   },
   "Tutors": {
-    "tutor start 222": "set your tutoring session to egr222",
-    "tutor next": "get the next student in the waitlist",
-    "tutor cancel": "cancel getting the next student",
-    "tutor wl": "show your tutoring waitlist",
-    "tutor move 1 3": "move the student in position 1 to position 3 in the waitlist",
-    "tutor swap 1 3": "swaps the students in position 1 and position 3 in the waitlist",
-    "tutor kick 3": "removes the student in position 3 from the waitlist",
-    "tutor remove 3": "same as above",
-    "tutor clear": "removes all students in your waitlist",
+    "tutor start 222": "set your tutoring session to EGR222",
     "tutor end": "set your tutoring session to None",
+    "tutor que": "show your tutoring queue",
+    "tutor next": "get the next student in the queue",
+    "tutor stop": "stop asking for the next student",
+    "tutor move 1 3": "move the student in position 1 to position 3 in the queue",
+    "tutor swap 1 3": "swaps the students in position 1 and position 3 in the queue",
+    "tutor remove 3": "removes the student in position 3 from the queue",
+    "tutor clear": "removes all students in your queue",
     "tutor": "*commands with 222 can be replaced with 227 or 312*"
   }
 }
