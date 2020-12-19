@@ -16,7 +16,7 @@ class Role:
     """
     def __init__(self, bot):
         self.bot = bot  # the discord bot that will be using this class
-        self.emojis = Reaction().emojis  # a dictionary of available course codes and it corresponding emojis.
+        self.emojis = Reaction().course_emojis()  # a dictionary of available course codes and it corresponding emojis.
         self.channel = int(os.getenv("ROLE_REACTION_CHANNEL_ID"))  # the discord role reaction channel id.
         self.message = int(os.getenv("ROLE_REACTION_MESSAGE_ID"))  # the discord role message id.
 
