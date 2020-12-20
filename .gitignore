@@ -128,5 +128,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Credentials directory
-credentials/
+# Student Sign-in sheet
+student_sign_in_sheet/
