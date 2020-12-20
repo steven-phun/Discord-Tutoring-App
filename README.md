@@ -11,6 +11,7 @@ This is a discord bot developed in Python and Discord.py Rewrite that provides t
 - requests [documentation](https://requests.readthedocs.io/en/master) ```pip install requests```
 - cryptography [documentation](https://cryptography.io/en/latest/index.html) ```pip install cryptography```
 - gspread [documentation](https://gspread.readthedocs.io/en/latest) ```pip install gspread```
+- openpyxl [documentation](https://openpyxl.readthedocs.io/en/stable/index.html) ```pip install openpyxl```
 
 # Tutoring Features
 - Features that are used by the Tutees during a tutoring session.
