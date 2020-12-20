@@ -76,7 +76,7 @@ async def display_dev_help_msg(ctx):
     """
     help_msg = []
     separator = '\n'
-    file = json_to_dict('json_files/developers/dev_help_msg.json')
+    file = json_to_dict('json_files/developers/help_message.json')
     prefix = os.getenv("BOT_PREFIX")
     for category in file:
         help_msg.append(f'__**{category}**__')
@@ -113,7 +113,7 @@ async def display_blank_google_form(ctx):
     ----------
     :param Context ctx: the current Context.
     """
-    await send_embed(ctx, text=f'sign-in sheet [click here]({os.getenv("GOOGLE_FORM_LINK")})')
+    await send_embed(ctx, text=f'blank sign-in sheet [click here]({os.getenv("GOOGLE_FORM_LINK")})')
 
 
 def get_dev_title():
