@@ -32,7 +32,7 @@ class Tutee(commands.Cog):
 
         # send student their custom sign-in link.
         if arg.lower() == 'hi':
-            return await sign_in(ctx, tutoring_accounts)
+            return await sign_in(ctx, arg2, tutoring_accounts)
 
         # set up a student's tutoring account.
         if arg.lower() == 'set':
@@ -189,7 +189,7 @@ async def add_student_to_queue(ctx, sessions, accounts):
     await display_queue(ctx, course)
 
 
-async def sign_in(ctx, student_accounts):
+async def sign_in(ctx, tutor_name, student_accounts):
     """send student their custom sign-in sheet to submit.
 
     student's custom sign-in sheet link will be sent
@@ -203,6 +203,7 @@ async def sign_in(ctx, student_accounts):
     Parameters
     ----------
     :param Context ctx: the current Context.
+    :param str tutor_name: the str that represents the tutor's name.
     :param dict student_accounts: the dictionary that is storing every student accounts.
     """
     student = student_accounts.get(ctx.author.id)
@@ -217,7 +218,7 @@ async def sign_in(ctx, student_accounts):
 
     # send student their custom sign-in link.
     await send_embed(user=student.ctx.discord_id(), title=get_student_accounts_title(),
-                     text=f'your sign-in sheet [click here]({await student.sign_in()}).')
+                     text=f'your sign-in sheet [click here]({await student.sign_in(tutor_name)}).')
 
 
 async def send_is_verified(ctx, student):
