@@ -76,5 +76,5 @@ def get_help_title():
 
 
 # connect this cog to bot.
-def setup(bot):
-    bot.add_cog(Help(bot))
+def setup(client):
+    client.add_cog(Help(client))
