@@ -1,9 +1,9 @@
 import os
-import gspread
 import json
 from datetime import date, datetime
 from cryptography.fernet import Fernet
 from my_classes.Context import Context
+from my_classes.GoogleSheet import get_google_sheet
 
 
 class Student:
@@ -39,65 +39,45 @@ class Student:
 
         return encrypted_account.decode('utf-8')
 
-    async def sign_in(self):
+    async def sign_in(self, tutor_name):
         """send the student their custom sign-in sheet link.
 
         REQUIREMENT: google form.
             the google form requires: course code, tutor's name, student name, student id, and degree program.
         WARNING: https links spaces are represented with '+'
             this will be used when adding a space between student's first and last name.
+        override default tutor's name:
+        if student passed in a tutor's name as an argument.
 
         :return: a str that represents the student's custom sign-in link.
         """
+        # default tutor's name
+        if tutor_name is None:
+            tutor = self.tutor_name()
+        else:
+            tutor = tutor_name.lower().capitalize()
+
         # generate custom sign-in link.
-        return f'https://docs.google.com/forms/d/e/1FAIpQLSeLjQ8XunqxtzlWGHKB5Kt52-ZAyBqPiyBmLPfNcDuYhb5dsg/viewform?usp=pp_url&entry.1178312123={self.course_code}&entry.1604735080={self.tutor_name()}&entry.174697377={self.first}+{self.last}&entry.1854395744={self.student_id}+&entry.905892592={self.program_degree}'
+        return f'https://docs.google.com/forms/d/e/1FAIpQLSeLjQ8XunqxtzlWGHKB5Kt52-ZAyBqPiyBmLPfNcDuYhb5dsg/viewform?usp=pp_url&entry.1178312123={self.course_code}&entry.1604735080={tutor}&entry.174697377={self.first}+{self.last}&entry.1854395744={self.student_id}+&entry.905892592={self.program_degree}'
 
     def verify(self):
         """verify student if they submitted their sign-in sheet via google forms.
 
-        BOT AUTHENTICATION AND AUTHORIZATION NEEDED:
-            for gspread api: https://gspread.readthedocs.io/en/latest/
-        API DOCUMENTATIONS AND RESTRICTIONS LIMITS:
-            restrictions:
-                Sheets API v4 introduced Usage Limits as of this writing:
-                    500 requests per 100 seconds per project,
-                    100 requests per 100 seconds per user.
-                API will display an APIError 429 RESOURCE_EXHAUSTED:
-        ACTION NEEDED:
-            google form appends new data to the end of the sheet rather than inserting it at the top of the sheet.
-                to reduce the time complexity, new data should be searched first.
-            add a new sheet and insert the formula in the A1 cell.
-                =SORT('Form responses 1'!A1:R,1,false)
-                'Form responses 1' is the sheet's name that contains the sign-in information.
         the bot will give the students a link to sign-in, but the student is still required to submit the form.
             this function will verify if the student submitted the form.
-        WARNING: google sheet api takes 3-5 seconds to open.
-            to improve user's experience place this function where the user would feel the least amount of delay.
-            it is NOT recommend to look up and modify the sheet directly because the delay will be noticeable.
-                instead store the sheet's content in a data structure
-                    then perform the look ups and modification on the data structure.
 
         :return: True if the student has submitted their sign-in sheet, otherwise False.
         """
-        # get authentication and authorization from google sheet credentials file.
-        credentials = gspread.service_account(filename='credentials/google_sheet.json')
-
-        # get sign-in sheet.
-        sheet = credentials.open_by_key(os.getenv("GOOGLE_SHEET_KEY")).get_worksheet(1)
-
-        # store content in dictionary.
-        content = sheet.get_all_records()
-
         # verify student's sign-in.
-        for data in content:
+        for content in get_google_sheet():
             # only check entries that were submitted today.
-            if data['Timestamp'].split(' ')[0] != date.strftime(date.today(), '%m/%d/%Y'):
+            if content['Timestamp'].split(' ')[0] != date.strftime(date.today(), '%m/%d/%Y'):
                 return False
             # check if student signed-in.
-            if data['Student Name'] == self.name() and \
-                    str(data['Student ID']) == self.student_id and \
-                    data['Course Code'] == self.course_code and \
-                    data['Degree'] == self.program_degree:
+            if content['Student Name'] == self.name() and \
+                    str(content['Student ID']) == self.student_id and \
+                    content['Course Code'] == self.course_code and \
+                    content['Degree'] == self.program_degree:
                 return True
 
     def tutor_name(self):
@@ -105,6 +85,8 @@ class Student:
 
         tutor's name is obtained by looking at the tutoring hours
             and seeing which tutor's timeslot fall between the current time this command was called.
+        if no tutor's name is found, then get the next tutor that will be tutoring.
+            this feature is for students that sign in early.
         the tutoring hours are stored in a local .json file in a 24-hour format.
         """
         # get tutoring schedule from a local .json file.
@@ -126,8 +108,12 @@ class Student:
             start_time = datetime.now().replace(hour=start_hour, minute=start_minute)
             end_time = datetime.now().replace(hour=end_hour, minute=end_minute)
 
-            # get tutor's name
+            # get tutor's name.
             if start_time < datetime.now() < end_time:
+                return tutor
+
+            # predict tutor's name.
+            if datetime.now() < start_time:
                 tutor_name = tutor
 
         return tutor_name
