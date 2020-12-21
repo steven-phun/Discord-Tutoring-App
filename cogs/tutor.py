@@ -3,6 +3,8 @@ import os
 from discord.ext import commands
 from cogs.bot import bot, send_embed, to_member, send_courses_reaction_message, tutoring_sessions, display_queue
 from my_classes.Worker import Worker
+from my_classes.GoogleSheet import GoogleSheet
+from datetime import date, datetime
 
 
 class Tutor(commands.Cog):
@@ -59,6 +61,10 @@ class Tutor(commands.Cog):
         # remove every student from the queue.
         if arg.lower() == 'clear':
             return await edit_student_in_queue(ctx, self.tutor_accounts.get(ctx.author.id), clear=True)
+
+        # get the sign-in sheet for a tutoring session.
+        if arg.lower() == 'sheet':
+            return await generate_sing_in_sheet(ctx, self.tutor_accounts.get(ctx.author.id), arg2)
 
 
 async def announce_session_started(ctx, course_num, tutor_accounts):
@@ -117,7 +123,7 @@ async def set_session(ctx, course_num, tutor_accounts):
 
     # add tutor object to tutor object dictionary.
     if course is not None:
-        tutor = Worker(ctx, course)
+        tutor = Worker(ctx, to_member(ctx.author.id).nick, course)
         tutor_accounts[tutor.ctx.discord_id()] = tutor
 
 
@@ -459,6 +465,39 @@ async def edit_student_in_queue(ctx, tutor, first=None, second=None, move=False,
     # ValueError - either position is None.
     except (TypeError, ValueError):
         pass
+
+
+async def generate_sing_in_sheet(ctx, tutor, day):
+    """transfer the data from the google sheet sign-in sheet to an excel.
+
+    the tutor has the option of generating a sign-in sheet for a specific date.
+        this feature is implemented in case tutors forget to generate one.
+
+    Parameters
+    ----------
+    :param Context ctx: the current Context.
+    :param 'Tutor' tutor: the object that represents the tutor.
+    :param str day: the day the sign-in sheet is generated for.
+    """
+    # convert given day to datetime object.
+    if day is None:
+        tutoring_date = date.today()
+    else:
+        try:
+            tutoring_date = datetime.strptime(day, '%Y-%m-%d')
+        except ValueError:
+            return await send_embed(ctx, text='*invalid date format YYYY-MM-DD.*')
+
+    # display progress message.
+    message = await send_embed(ctx, text='*generating sign-in sheet...*')
+
+    # open excel workbook.
+    workbook = GoogleSheet()
+    workbook.get_sign_in_sheet(tutor, tutoring_date)
+
+    # display confirmation.
+    await message.delete()
+    await send_embed(ctx, text='sign-in sheet completed!')
 
 
 async def is_tutor(ctx):
