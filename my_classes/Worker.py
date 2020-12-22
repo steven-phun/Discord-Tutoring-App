@@ -2,8 +2,9 @@ from my_classes.Context import Context
 
 
 class Worker:
-    def __init__(self, ctx, course: 'Course'):
+    def __init__(self, ctx, name: str, course: 'Course'):
         self.ctx = Context(ctx)  # the object that represents this member's Content.
+        self.name = name  # the str that represents the tutor's full name.
         self.course = course  # the course object the tutor is tutoring.
         self.reaction_msg = None  # the reaction message sent by the tutor to get the next student.
 
