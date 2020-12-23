@@ -39,6 +39,8 @@ COMMAND | VARIABLE | DESCRIPTION
 .tutor swap | [position 1][position 2] | swap the student in [position 1] with the student in [position 2] in the queue. 
 .tutor remove | [position 1] | remove the student in [position 1] from the queue. 
 .tutor clear | ----- | remove all students from the tutor's queue. 
+.tutor sheet | ----- | generate the tutor's sign-in sheet in .xlsx format.
+
 
 # General Features
 - Features that can be used by other discord bots. 
