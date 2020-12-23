@@ -1,4 +1,4 @@
-# Tutoring App
+# Discord Tutoring App
 This is a discord bot developed in Python and Discord.py Rewrite that provides the main functions you would expect from a tutoring session, such as joining, viewing, and modifying the waitlist, pulling up tutoring session's hours and sign-in sheet, etc.
 
 # Prerequisites
