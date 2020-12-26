@@ -62,7 +62,7 @@ class Tutor(commands.Cog):
         if arg.lower() == 'clear':
             return await edit_student_in_queue(ctx, self.tutor_accounts.get(ctx.author.id), clear=True)
 
-        # get the sign-in sheet for a tutoring session.
+        # generate a sign-in sheet for a given tutoring session.
         if arg.lower() == 'sheet':
             return await generate_sing_in_sheet(ctx, self.tutor_accounts.get(ctx.author.id), arg2)
 
@@ -470,6 +470,7 @@ async def edit_student_in_queue(ctx, tutor, first=None, second=None, move=False,
 async def generate_sing_in_sheet(ctx, tutor, day):
     """transfer the data from the google sheet sign-in sheet to an excel.
 
+    the generated excel file will have the extension .xlsx.
     the tutor has the option of generating a sign-in sheet for a specific date.
         this feature is implemented in case tutors forget to generate one.
 
@@ -493,11 +494,17 @@ async def generate_sing_in_sheet(ctx, tutor, day):
 
     # open excel workbook.
     workbook = GoogleSheet()
-    workbook.get_sign_in_sheet(tutor, tutoring_date)
 
     # display confirmation.
     await message.delete()
     await send_embed(ctx, text='sign-in sheet completed!')
+
+    # generate sign-in sheet.
+    await workbook.get_sign_in_sheet(tutor, tutoring_date)
+
+    # send sign-in sheet to tutor.
+    with open(f'{workbook.path}/{workbook.file_name}', 'rb') as file:
+        await bot.get_user(ctx.author.id).send(file=discord.File(file, workbook.file_name))
 
 
 async def is_tutor(ctx):

@@ -7,12 +7,18 @@ from calendar import day_name
 
 class GoogleSheet:
     def __init__(self):
-        self.excel_workbook = openpyxl.load_workbook('student_sign_in_sheet/excel_template.xlsx')
+        self.path = 'sign_in_sheet'
+        self.workbook = openpyxl.load_workbook(f'{self.path}/excel_template.xlsx')
+        self.file_name = ''
 
-    def get_sign_in_sheet(self, tutor, day):
-        """transfer the information from the google sign-in sheet to school's sign-in sheet format.
+    async def get_sign_in_sheet(self, tutor, day):
+        """generate a sign-in sheet to submit.
 
+        the generated excel sheet will be based on CBU's Office of Student Success' sign-in sheet format.
+        the data is obtained from the google form the student submit and written in a given format in excel.
         a template of the school's excel sheet is stored in a local .xlsx file.
+        the bot will send the generated excel as a direct message
+            because of sensitive data (student's information)
 
         Parameters
         ----------
@@ -22,7 +28,7 @@ class GoogleSheet:
         # get the google sign-in sheet.
         sheet = get_google_sheet()
         # generate an excel sheet from template.
-        excel = self.excel_workbook.active
+        excel = self.workbook.active
 
         # edit template with tutor's information.
         excel_date_format = date.strftime(day, '%m/%d/%Y')
@@ -41,7 +47,9 @@ class GoogleSheet:
 
                 cell_num += 1
 
-        self.excel_workbook.save(f'student_sign_in_sheet/{tutor.name} {date.strftime(day, "%Y-%m-%d")}.xlsx'.replace(' ', '_'))
+        # generate excel sheet.
+        self.file_name = f'{tutor.name} {date.strftime(day, "%Y-%m-%d")}.xlsx'.replace(' ', '_')
+        self.workbook.save(f'{self.path}/{self.file_name}')
 
 
 def get_google_sheet():
@@ -65,8 +73,8 @@ def get_google_sheet():
                 instead store the sheet's content in a data structure
                     then perform the look ups and modification on the data structure.
     """
-    # get authentication and authorization from google sheet student_sign_in_sheet file.
-    credentials = gspread.service_account(filename='student_sign_in_sheet/google_cred.json')
+    # get authentication and authorization from google sheet sign_in_sheet file.
+    credentials = gspread.service_account(filename='sign_in_sheet/google_cred.json')
 
     # get sign-in sheet.
     sheet = credentials.open_by_key(os.getenv("GOOGLE_SHEET_KEY")).get_worksheet(1)
