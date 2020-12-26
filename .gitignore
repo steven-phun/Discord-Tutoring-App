@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 # Student Sign-in sheet
-student_sign_in_sheet/
+sign_in_sheet/
