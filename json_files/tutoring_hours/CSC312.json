@@ -1,6 +1,6 @@
 {
   "Monday": {
-    "Nick": {
+    "Tutor1": {
       "start_hour": 17,
       "start_minute": 30,
       "end_hour": 19,
@@ -11,7 +11,7 @@
   "Tuesday": {
   },
   "Wednesday": {
-    "Chase": {
+    "Tutor2": {
       "start_hour": 20,
       "start_minute": 0,
       "end_hour": 22,
@@ -20,7 +20,7 @@
     }
   },
   "Thursday": {
-    "Abanoub": {
+    "Tutor1": {
       "start_hour": 17,
       "start_minute": 0,
       "end_hour": 19,
@@ -29,5 +29,9 @@
     }
   },
   "Friday": {
+  },
+  "Saturday": {
+  },
+  "Sunday": {
   }
 }
