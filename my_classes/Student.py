@@ -1,9 +1,9 @@
 import os
-import json
-from datetime import date, datetime
+from datetime import date
 from cryptography.fernet import Fernet
 from my_classes.Context import Context
 from my_classes.GoogleSheet import get_google_sheet
+from my_classes.Schedule import Schedule
 
 
 class Student:
@@ -39,7 +39,7 @@ class Student:
 
         return encrypted_account.decode('utf-8')
 
-    async def sign_in(self, tutor_name):
+    async def sign_in(self, first_name):
         """send the student their custom sign-in sheet link.
 
         REQUIREMENT: google form.
@@ -49,13 +49,19 @@ class Student:
         override default tutor's name:
         if student passed in a tutor's name as an argument.
 
+        Parameters
+        ----------
+        :param str first_name: the str that represents the tutor's first name.
         :return: a str that represents the student's custom sign-in link.
         """
-        # default tutor's name
-        if tutor_name is None:
-            tutor = self.tutor_name()
+
+        if first_name is None:
+            # get tutor's name from schedule.
+            schedule = Schedule(self.course_code)
+            tutor = schedule.tutor_name().replace(' ', '+')
         else:
-            tutor = tutor_name.lower().capitalize()
+            # default tutor's name
+            tutor = first_name.lower().capitalize()
 
         # generate custom sign-in link.
         return f'https://docs.google.com/forms/d/e/1FAIpQLSeLjQ8XunqxtzlWGHKB5Kt52-ZAyBqPiyBmLPfNcDuYhb5dsg/viewform?usp=pp_url&entry.1178312123={self.course_code}&entry.1604735080={tutor}&entry.174697377={self.first}+{self.last}&entry.1854395744={self.student_id}+&entry.905892592={self.program_degree}'
@@ -74,49 +80,14 @@ class Student:
             if content['Timestamp'].split(' ')[0] != date.strftime(date.today(), '%m/%d/%Y'):
                 return False
             # check if student signed-in.
+            schedule = Schedule(self.course_code)
             if content['Student Name'] == self.name() and \
                     str(content['Student ID']) == self.student_id and \
                     content['Course Code'] == self.course_code and \
-                    content['Degree'] == self.program_degree:
+                    content['Degree'] == self.program_degree and \
+                    content['Tutor'] == schedule.tutor_name():
+
                 return True
-
-    def tutor_name(self):
-        """get the name of the tutor that is tutoring the student's respective course.
-
-        tutor's name is obtained by looking at the tutoring hours
-            and seeing which tutor's timeslot fall between the current time this command was called.
-        if no tutor's name is found, then get the next tutor that will be tutoring.
-            this feature is for students that sign in early.
-        the tutoring hours are stored in a local .json file in a 24-hour format.
-        """
-        # get tutoring schedule from a local .json file.
-        with open(f'json_files/tutoring_hours/{self.course_code}.json') as file:
-            schedule = json.load(file)
-
-        # look up today's day of the week in schedule.
-        today_schedule = schedule[datetime.now().strftime('%A')]
-
-        # get tutor's name.
-        tutor_name = None
-        for tutor in today_schedule:
-            # get fields from dictionary.
-            start_hour = today_schedule[tutor]['start_hour']
-            start_minute = today_schedule[tutor]['start_minute']
-            end_hour = today_schedule[tutor]['end_hour']
-            end_minute = today_schedule[tutor]['end_minute']
-            # convert fields to time object.
-            start_time = datetime.now().replace(hour=start_hour, minute=start_minute)
-            end_time = datetime.now().replace(hour=end_hour, minute=end_minute)
-
-            # get tutor's name.
-            if start_time < datetime.now() < end_time:
-                return tutor
-
-            # predict tutor's name.
-            if datetime.now() < start_time:
-                tutor_name = tutor
-
-        return tutor_name
 
     def name(self):
         """:return: str of the student's first and last name."""
