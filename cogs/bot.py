@@ -81,7 +81,7 @@ def json_to_dict(file_path):
     :return: a dictionary of the contents in a .json file.
     """
     # open and read help message from a .json file.
-    with open(file_path) as file:
+    with open(file_path, encoding='UTF8') as file:
         return json.load(file)
 
 
@@ -102,6 +102,195 @@ def mentioned_user(discord_id):
     :return: a str of how Discord mentions a user with given discord id.
     """
     return f'<@!{discord_id}>'
+
+
+###########################
+#  TUTEE/TUTOR FUNCTIONS  #
+###########################
+async def display_queue(ctx, course, current_channel=True, direct_msg=False, announcement=True):
+    """display the current queue.
+
+    DISCORD CHANNEL NEEDED: a bot announcement channel.
+        bot will display an updated queue:
+            everytime the queue has been modify.
+        to keep the queue updated the bot will remove the queue message.
+    the bot will display a 'user has not sign-in' error message.
+        if the current student being helped ( queue[0] ) did not submit their sign-in form.
+    a 'queue is empty' error message will be displayed:
+        if there are no students in the queue.
+    (optional) bot will send a direct message to each student their current position in the queue.
+
+   Parameters
+    ----------
+    :param Context ctx: the current Context.
+    :param boolean current_channel: if True queue should be printed where the command was triggered
+    :param Course course: the course queue's object to display.
+    :param boolean direct_msg: if True direct message each student their position in the queue,
+    :param boolean announcement: if True queue should be printed in the bot announcement channel
+    """
+    # display queue.
+    description = ''
+    for index, student in enumerate(course.queue, start=1):
+        mention_student = f'<@!{student.discord_id}>'
+        description += f'#{index} {mention_student} - {student.times_helped}\n'
+
+        # send student their position in queue.
+        if direct_msg:
+            await send_position_in_queue(student.discord_id, course, index)
+
+    # display error message.
+    if course.que_is_empty():
+        description = '*queue is empty.*'
+
+    if announcement:
+        # remove old queue message made by bot.
+        if course.message is not None:
+            await course.message.delete()
+
+        # display updated queue in bot announcement channel.
+        channel = int(os.getenv("BOT_ANNOUNCEMENT_CHANNEL_ID"))
+        course.message = await send_embed(channel=channel, title=course.queue_title(), text=description)
+
+    if current_channel:
+        await send_embed(ctx, title=course.queue_title(), text=description)
+
+
+async def send_position_in_queue(discord_id, course, position):
+    """DM given student their current position in the queue.
+        since student in position 1 is with the tutor
+            a position update is not needed.
+        students in position 2 will have a custom message.
+            while the other positions will get the default message.
+
+    Parameters
+    ----------
+    :param int discord_id: the student's discord id.
+    :param Course course: the course object.
+    :param int position: the student's position in the queue.
+    """
+    if position == 1:
+        return
+
+    description = f'#{position} in the queue'
+
+    if position == 2:
+        description = 'you are next!'  # custom message.
+
+    await send_embed(user=discord_id, title=course.queue_title(), text=description)
+
+
+async def is_bot_channel(ctx):
+    """checks if a bot command was made in a designed channel.
+
+    this function is implemented:
+        to avoid flooding the server with unwanted bot commands.
+        for students to mute channels that is designated for the bot.
+    the bot will send a direct message to the user to use the command in the designed bot channel:
+        if the command was not made in the designed channel.
+
+
+    Parameters
+    ----------
+    :param Context ctx: the current context.
+    :return: True, if the channel is a designed bot channel, otherwise return False.
+    """
+    # prompt the user to use the designed bot channel.
+    if str(ctx.channel.type) == 'text' and ctx.channel.id != int(os.getenv("BOT_COMMAND_CHANNEL_ID")):
+        await ctx.message.delete()
+        await send_embed(user=ctx.author.id, text='use the "bot-commands" channel or message me directly.')
+        return False
+
+    return True
+
+
+########################
+#  INSTANCE FUNCTIONS  #
+########################
+def generate_bot_client():
+    """generates an instance of a Discord Bot.
+
+    API UPDATE: In version 1.5 of discord.py comes the introduction of Intents.
+        This is a radical change in how bots are written.
+        An intent basically allows a bot to subscribe into specific buckets of events.
+
+    :return: an instance of a discord bot.
+    """
+    prefix = os.getenv("BOT_PREFIX")
+    intents = discord.Intents(messages=True, guilds=True, members=True, presences=True, reactions=True,
+                              voice_states=True)
+
+    return commands.Bot(command_prefix=prefix, help_command=None, intents=intents)
+
+
+def initialize_sessions():
+    """initialize and store every available class course to their tutoring sessions object.
+
+    :return: a dictionary of course number as key and the course object as value.
+                example:
+                    222 : Course(EGR222)
+                    312 : Course(CSC312)
+    """
+    sessions = {}
+
+    for course_code in Reaction().course_codes():
+        course = Course(course_code)
+        sessions[course.num()] = course
+
+    return sessions
+
+
+async def initialize_accounts(dictionary):
+    """read then store each student accounts from a discord channel as an object to given dictionary.
+
+    DISCORD REQUIREMENT:
+        read_message_history permission.
+    WARNING:
+        the discord channel that is storing the student accounts should not allows others to modify or add content to
+            because decrypting any text that is not in encrypted format will throw an error.
+        DO NOT add this function to @event on_ready
+            because the bot cannot read the contents on the message before going online.
+    this function is called when the student's account is empty
+        to represent the accounts being initialize every time the bot goes online for the first time.
+    to not cause an infinite loop
+        because this function will be called  when the array storing the student accounts len is 0.
+        when the student account is truly empty the bot will append a dummy value increasing the array's length.
+            the dummy value will be ignored when initializing the accounts.
+    deleting the message that contains the student info
+        is the same as removing the student account from a database.
+    the messages being read are embed messages.
+    a dictionary is used to store the objects:
+        key=student's discord id, value=student object
+
+    Parameters
+    ----------
+    :param dict dictionary: the dictionary to store the student objects.
+    """
+    # gets student account from designed discord channel.
+    channel = bot.get_channel(int(os.getenv("STUDENT_ACCOUNTS_CHANNEL_ID")))
+    history = await channel.history(oldest_first=True).flatten()
+
+    # get student accounts.
+    for msg in history:
+        student = to_student(msg.embeds[0].description)
+        dictionary[student.discord_id] = student  # add student accounts to dictionary.
+
+
+######################
+#  GLOBAL INSTANCES  #
+######################
+# bot instance.
+load_dotenv()  # load the environment variables from a local .env file.
+bot = generate_bot_client()  # an instance of the discord bot.
+
+# tutee and tutor fields.
+tutoring_sessions = initialize_sessions()  # a dictionary of every available tutoring session.
+tutoring_accounts = {}  # a dictionary of student objects.
+private_rooms = {}  # a dictionary of generated private voice channel rooms.
+
+# oops commands fields.
+msg_history = {}  # keeps track of the Bot's past messages to delete.
+user_discord_id = 'discord_id'  # stores the discord id of the last user that triggered a bot command.
+channel_id = 'channel'  # stores the discord channel id the bot message was sent.
 
 
 #####################
@@ -248,169 +437,21 @@ async def give_admin_permissions(member, channel):
                                   view_channel=True, stream=True, move_members=True, speak=True)
 
 
-########################
-#  INSTANCE FUNCTIONS  #
-########################
-def generate_bot_client():
-    """generates an instance of a Discord Bot.
+async def clean_up_channels():
+    """removes any unwanted channels or permission in the server.
 
-    API UPDATE: In version 1.5 of discord.py comes the introduction of Intents.
-        This is a radical change in how bots are written.
-        An intent basically allows a bot to subscribe into specific buckets of events.
-
-    :return: an instance of a discord bot.
+    this function is implemented:
+        in case the bot goes down before any functions that triggers the removal of a  channel/permission.
     """
-    prefix = os.getenv("BOT_PREFIX")
-    intents = discord.Intents(messages=True, guilds=True, members=True, presences=True, reactions=True,
-                              voice_states=True)
+    for channel in bot.get_guild(int(os.getenv("GUILD_SERVER_ID"))).channels:
+        # remove student's permission to connect to tutor's voice channel.
+        if channel.type == discord.ChannelType.voice:
+            for member in channel.overwrites:
+                await channel.set_permissions(member, overwrite=None)
 
-    return commands.Bot(command_prefix=prefix, help_command=None, intents=intents)
-
-
-def initialize_sessions():
-    """initialize and store every available class course to their tutoring sessions object.
-
-    :return: a dictionary of course number as key and the course object as value.
-                example:
-                    222 : Course(EGR222)
-                    312 : Course(CSC312)
-    """
-    sessions = {}
-
-    for course_code in Reaction().course_codes():
-        course = Course(course_code)
-        sessions[course.num()] = course
-
-    return sessions
-
-
-async def initialize_accounts(dictionary):
-    """read then store each student accounts from a discord channel as an object to given dictionary.
-
-    DISCORD REQUIREMENT:
-        read_message_history permission.
-    WARNING:
-        the discord channel that is storing the student accounts should not allows others to modify or add content to
-            because decrypting any text that is not in encrypted format will throw an error.
-        DO NOT add this function to @event on_ready
-            because the bot cannot read the contents on the message before going online.
-    this function is called when the student's account is empty
-        to represent the accounts being initialize every time the bot goes online for the first time.
-    to not cause an infinite loop
-        because this function will be called  when the array storing the student accounts len is 0.
-        when the student account is truly empty the bot will append a dummy value increasing the array's length.
-            the dummy value will be ignored when initializing the accounts.
-    deleting the message that contains the student info
-        is the same as removing the student account from a database.
-    the messages being read are embed messages.
-    a dictionary is used to store the objects:
-        key=student's discord id, value=student object
-
-    Parameters
-    ----------
-    :param dict dictionary: the dictionary to store the student objects.
-    """
-    # gets student account from designed discord channel.
-    channel = bot.get_channel(int(os.getenv("STUDENT_ACCOUNTS_CHANNEL_ID")))
-    history = await channel.history(oldest_first=True).flatten()
-
-    # get student accounts.
-    for msg in history:
-        student = to_student(msg.embeds[0].description)  # todo convert method to class?
-        dictionary[student.discord_id] = student  # add student accounts to dictionary.
-
-
-###########################
-#  TUTEE/TUTOR FUNCTIONS  #
-###########################
-async def display_queue(ctx, course, current_channel=True, direct_msg=False, announcement=True):
-    """display the current queue.
-
-    DISCORD CHANNEL NEEDED: a bot announcement channel.
-        bot will display an updated queue:
-            everytime the queue has been modify.
-        to keep the queue updated the bot will remove the queue message.
-    the bot will display a 'user has not sign-in' error message.
-        if the current student being helped ( queue[0] ) did not submit their sign-in form.
-    a 'queue is empty' error message will be displayed:
-        if there are no students in the queue.
-    (optional) bot will send a direct message to each student their current position in the queue.
-
-   Parameters
-    ----------
-    :param Context ctx: the current Context.
-    :param boolean current_channel: if True queue should be printed where the command was triggered
-    :param Course course: the course queue's object to display.
-    :param boolean direct_msg: if True direct message each student their position in the queue,
-    :param boolean announcement: if True queue should be printed in the bot announcement channel
-    """
-    # display queue.
-    description = ''
-    for index, student in enumerate(course.queue, start=1):
-        mention_student = f'<@!{student.discord_id}>'
-        description += f'#{index} {mention_student} - {student.times_helped}\n'
-
-        # send student their position in queue.
-        if direct_msg:
-            await send_position_in_queue(student.discord_id, course, index)
-
-    # display error message.
-    if course.que_is_empty():
-        description = '*queue is empty.*'
-
-    if announcement:
-        # remove old queue message made by bot.
-        if course.message is not None:
-            await course.message.delete()
-
-        # display updated queue in bot announcement channel.
-        channel = int(os.getenv("BOT_ANNOUNCEMENT_CHANNEL_ID"))
-        course.message = await send_embed(channel=channel, title=course.queue_title(), text=description)
-
-    if current_channel:
-        await send_embed(ctx, title=course.queue_title(), text=description)
-
-
-async def send_position_in_queue(discord_id, course, position):
-    """DM given student their current position in the queue.
-        since student in position 1 is with the tutor
-            a position update is not needed.
-        students in position 2 will have a custom message.
-            while the other positions will get the default message.
-
-    Parameters
-    ----------
-    :param int discord_id: the student's discord id.
-    :param Course course: the course object.
-    :param int position: the student's position in the queue.
-    """
-    if position == 1:
-        return
-
-    description = f'#{position} in the queue'
-
-    if position == 2:
-        description = 'you are next!'  # custom message.
-
-    await send_embed(user=discord_id, title=course.queue_title(), text=description)
-
-
-######################
-#  GLOBAL INSTANCES  #
-######################
-# bot instance.
-load_dotenv()  # load the environment variables from a local .env file.
-bot = generate_bot_client()  # an instance of the discord bot.
-
-# tutee and tutor fields.
-tutoring_sessions = initialize_sessions()  # a dictionary of every available tutoring session.
-tutoring_accounts = {}  # a dictionary of student objects.
-private_rooms = {}  # a dictionary of generated private voice channel rooms.
-
-# oops commands fields.
-msg_history = {}  # keeps track of the Bot's past messages to delete.
-user_discord_id = 'discord_id'  # stores the discord id of the last user that triggered a bot command.
-channel_id = 'channel'  # stores the discord channel id the bot message was sent.
+        # remove private rooms made by students.
+        if channel.category is not None and channel.category.id == int(os.getenv("PRIVATE_ROOM_CATEGORY_ID")):
+            await channel.delete()
 
 
 ################
@@ -420,6 +461,7 @@ channel_id = 'channel'  # stores the discord channel id the bot message was sent
 async def on_ready():
     """executes these functions when the client is done preparing the data received from Discord."""
     await initialize_accounts(tutoring_accounts)  # bot needs to be ready before fetching messages.
+    await clean_up_channels()
     await Role(bot).add()
     await notify_devs_when_ready()
 
