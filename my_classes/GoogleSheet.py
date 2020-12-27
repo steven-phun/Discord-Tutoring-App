@@ -32,10 +32,13 @@ class GoogleSheet:
 
         # edit template with tutor's information.
         excel_date_format = date.strftime(day, '%m/%d/%Y')
-        excel['D10'].value = tutor.name  # tutor's name
-        excel['D4'].value = tutor.course.code  # course code
-        excel['B6'].value = day_name[day.weekday()]  # day of the week
-        excel['G6'].value = excel_date_format
+        day_of_week = day_name[day.weekday()]
+        excel['D10'].value = tutor.name  # cell represents the tutor's name.
+        excel['D4'].value = tutor.course.code  # cell represents the course code.
+        excel['B6'].value = day_of_week  # cell represents the day of the week.
+        excel['G6'].value = excel_date_format  # cell represents the tutoring date.
+        excel['C8'].value = tutor.schedule.tutor_time(tutor.name, day_of_week).split(' ')[0]  # cell represents the tutor's start time.
+        excel['G8'].value = tutor.schedule.tutor_time(tutor.name, day_of_week).split(' ')[1]  # cell represents the tutor's end time.
 
         # transfer student information.
         cell_num = 13  # the starting cell for student's info in excel.
@@ -44,7 +47,6 @@ class GoogleSheet:
                 excel[f'A{cell_num}'].value = content['Student ID']
                 excel[f'D{cell_num}'].value = content['Student Name']
                 excel[f'H{cell_num}'].value = content['Degree']
-
                 cell_num += 1
 
         # generate excel sheet.
