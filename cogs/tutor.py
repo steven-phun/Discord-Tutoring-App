@@ -1,7 +1,7 @@
 import discord
 import os
 from discord.ext import commands
-from cogs.bot import bot, send_embed, to_member, send_courses_reaction_message, tutoring_sessions, display_queue
+from cogs.bot import bot, send_embed, to_member, send_courses_reaction_message, tutoring_sessions, display_queue, is_bot_channel
 from my_classes.Worker import Worker
 from my_classes.GoogleSheet import GoogleSheet
 from datetime import date, datetime
@@ -22,8 +22,12 @@ class Tutor(commands.Cog):
         :param str arg2: the second argument.
         :param str arg3: the third argument.
         """
+        # ignore command if command was made outside the designed channel.
+        if await is_bot_channel(ctx) is False:
+            return
+
         # terminate function if user does not have tutor permissions.
-        if await is_tutor(ctx) is False:
+        if arg is None or await is_tutor(ctx) is False:
             return
 
         # end tutor's tutoring session.
@@ -96,7 +100,7 @@ async def announce_session_started(ctx, course_num, tutor_accounts):
     guild = bot.get_guild(int(os.getenv("GUILD_SERVER_ID")))
     role = discord.utils.get(guild.roles, name=tutor.course.code)
     channel_id = int(os.getenv("BOT_ANNOUNCEMENT_CHANNEL_ID"))
-    await send_embed(channel=channel_id, title=f'{tutor.hours()}',
+    await send_embed(channel=channel_id, title=f'{tutor.schedule.tutor_time(tutor.ctx.member().nick)}',
                      text=f'{tutor.ctx.mention()}\'s tutoring session has started!')
 
     # ping users in class course tutoring has started.
@@ -143,6 +147,9 @@ async def end_session(ctx, tutor, account):
 
     except AttributeError:
         await send_embed(ctx, text='*tutoring session not found.*')
+
+    # send the tutor the sign-in sheet.
+    await generate_sing_in_sheet(ctx, tutor)
 
 
 async def get_next_student(ctx, tutor):
@@ -467,7 +474,7 @@ async def edit_student_in_queue(ctx, tutor, first=None, second=None, move=False,
         pass
 
 
-async def generate_sing_in_sheet(ctx, tutor, day):
+async def generate_sing_in_sheet(ctx, tutor, day=None):
     """transfer the data from the google sheet sign-in sheet to an excel.
 
     the generated excel file will have the extension .xlsx.
