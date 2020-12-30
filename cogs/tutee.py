@@ -3,7 +3,7 @@ import os
 import re
 from discord.ext import commands
 from cogs.bot import bot, send_embed, to_member, send_courses_reaction_message, tutoring_sessions, tutoring_accounts, \
-    give_admin_permissions, private_rooms, display_queue
+    give_admin_permissions, private_rooms, display_queue, is_bot_channel
 from my_classes.Course import Course
 from my_classes.Student import Student
 
@@ -29,6 +29,10 @@ class Tutee(commands.Cog):
 
         # not a command.
         update_students_ctx(ctx)
+
+        # ignore command if command was made outside the designed channel.
+        if await is_bot_channel(ctx) is False:
+            return
 
         # send student their custom sign-in link.
         if arg.lower() == 'hi':
@@ -153,7 +157,7 @@ async def display_tutoring_hours(ctx, course):
     if course is None:
         return await display_error_msg(ctx)
 
-    await send_embed(ctx, title=course.hours_title(), text=course.hours())
+    await send_embed(ctx, title=course.hours_title(), text=course.schedule.hours())
 
 
 async def add_student_to_queue(ctx, sessions, accounts):
@@ -189,7 +193,7 @@ async def add_student_to_queue(ctx, sessions, accounts):
     await display_queue(ctx, course)
 
 
-async def sign_in(ctx, tutor_name, student_accounts):
+async def sign_in(ctx, first_name, student_accounts):
     """send student their custom sign-in sheet to submit.
 
     student's custom sign-in sheet link will be sent
@@ -203,7 +207,7 @@ async def sign_in(ctx, tutor_name, student_accounts):
     Parameters
     ----------
     :param Context ctx: the current Context.
-    :param str tutor_name: the str that represents the tutor's name.
+    :param str first_name: the str that represents the tutor's first name.
     :param dict student_accounts: the dictionary that is storing every student accounts.
     """
     student = student_accounts.get(ctx.author.id)
@@ -218,7 +222,7 @@ async def sign_in(ctx, tutor_name, student_accounts):
 
     # send student their custom sign-in link.
     await send_embed(user=student.ctx.discord_id(), title=get_student_accounts_title(),
-                     text=f'your sign-in sheet [click here]({await student.sign_in(tutor_name)}).')
+                     text=f'your sign-in sheet [click here]({await student.sign_in(first_name)}).')
 
 
 async def send_is_verified(ctx, student):
