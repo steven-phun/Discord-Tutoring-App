@@ -7,14 +7,13 @@ from my_classes.Schedule import Schedule
 
 
 class Student:
-    def __init__(self, ctx, first_name: str, last_name: str, student_id: str, course_code: str, program_degree: str,
-                 discord_id: int):
+    def __init__(self, ctx, first_name: str, last_name: str, student_id: str, program_degree: str, discord_id: int):
         self.ctx = Context(ctx)  # the object that represents this member's Content.
 
         self.first = first_name  # the student's first name.
         self.last = last_name  # the student's last name
         self.student_id = student_id  # the student's student id.
-        self.course_code = course_code  # the course code that the student is in tutoring for.
+        self.course = None  # the course object that the student is in tutoring for.
         self.program_degree = program_degree  # the degree the student is current pursuing.
         self.discord_id = discord_id  # the student's discord id.
 
@@ -33,7 +32,7 @@ class Student:
             student's account are stored in a discord channel to be read by the bot in the future.
         """
         # encrypt student information
-        information = f'{self.first} {self.last} {self.student_id} {self.course_code} {self.program_degree} {self.discord_id}'
+        information = f'{self.first} {self.last} {self.student_id} {self.program_degree} {self.discord_id}'
         fernet = Fernet(os.getenv("FERNET_KEY"))
         encrypted_account = fernet.encrypt(information.encode('utf-8'))
 
@@ -57,14 +56,16 @@ class Student:
 
         if first_name is None:
             # get tutor's name from schedule.
-            schedule = Schedule(self.course_code)
-            tutor = schedule.tutor_name().replace(' ', '+')
+            schedule = self.course.schedule
+            tutor = schedule.tutor_name()
+            if tutor is not None:
+                tutor.replace(' ', '+')
         else:
             # default tutor's name
             tutor = first_name.lower().capitalize()
 
         # generate custom sign-in link.
-        return f'https://docs.google.com/forms/d/e/1FAIpQLSeLjQ8XunqxtzlWGHKB5Kt52-ZAyBqPiyBmLPfNcDuYhb5dsg/viewform?usp=pp_url&entry.1178312123={self.course_code}&entry.1604735080={tutor}&entry.174697377={self.first}+{self.last}&entry.1854395744={self.student_id}+&entry.905892592={self.program_degree}'
+        return f'https://docs.google.com/forms/d/e/1FAIpQLSeLjQ8XunqxtzlWGHKB5Kt52-ZAyBqPiyBmLPfNcDuYhb5dsg/viewform?usp=pp_url&entry.1178312123={self.course.code}&entry.1604735080={tutor}&entry.174697377={self.first}+{self.last}&entry.1854395744={self.student_id}+&entry.905892592={self.program_degree}'
 
     def verify(self):
         """verify student if they submitted their sign-in sheet via google forms.
@@ -77,13 +78,13 @@ class Student:
         # verify student's sign-in.
         for content in get_google_sheet():
             # only check entries that were submitted today.
-            if content['Timestamp'].split(' ')[0] != date.strftime(date.today(), '%m/%d/%Y'):
+            if content['Timestamp'].split(' ')[0] != date.today().strftime('%m-%d-%Y'):
                 return False
             # check if student signed-in.
-            schedule = Schedule(self.course_code)
+            schedule = Schedule(self.course.code)
             if content['Student Name'] == self.name() and \
                     str(content['Student ID']) == self.student_id and \
-                    content['Course Code'] == self.course_code and \
+                    content['Course Code'] == self.course.code and \
                     content['Degree'] == self.program_degree and \
                     content['Tutor'] == schedule.tutor_name():
 
@@ -92,10 +93,6 @@ class Student:
     def name(self):
         """:return: str of the student's first and last name."""
         return f'{self.first} {self.last}'
-
-    def course_num(self):
-        """:return: a str that presents the course number."""
-        return self.course_code[-3:]
 
 
 def to_student(student_info):
@@ -116,4 +113,4 @@ def to_student(student_info):
     info = decrypt_info.decode('utf-8').split(' ')
 
     # generate Student object.
-    return Student(None, info[0], info[1], info[2], info[3], info[4], int(info[5]))
+    return Student(None, info[0], info[1], info[2], info[3], int(info[4]))
