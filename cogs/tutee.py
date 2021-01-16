@@ -11,7 +11,7 @@ from my_classes.Student import Student
 class Tutee(commands.Cog):
 
     @commands.command()
-    async def tutee(self, ctx, arg=None, arg2=None, arg3=None, arg4=None, arg5=None, arg6='Trad'):
+    async def tutee(self, ctx, arg=None, arg2=None, arg3=None, arg4=None, arg5=None):
         """listens for the tutee commands.
 
         Parameters
@@ -21,8 +21,7 @@ class Tutee(commands.Cog):
         :param str arg2: the second argument.
         :param str arg3: the third argument.
         :param str arg4: the fourth argument.
-        :param str arg5: the fifth argument.
-        :param str arg6: the sixth argument, default 'Trad'
+        :param str arg5: the sixth argument, default 'Trad'
         """
         if arg is None:
             return
@@ -60,7 +59,7 @@ class Tutee(commands.Cog):
 
         # generate a private voice channel.
         if arg.lower() == 'room':
-            return await generate_private_voice_channel(ctx, [arg2, arg3, arg4, arg5, arg6])
+            return await generate_private_voice_channel(ctx, [arg2, arg3, arg4, arg5])
 
 
 async def setup_account(ctx, accounts, first=None, last=None, student_id=None, degree='Trad'):
@@ -199,14 +198,16 @@ async def sign_in(ctx, course_num, tutor_name, student_accounts):
     Parameters
     ----------
     :param Context ctx: the current Context.
-    :param str course_num: the str that represents the course code.
+    :param str course_num: the str that represents the course number.
     :param str tutor_name: the str that represents the tutor's first name.
     :param dict student_accounts: the dictionary that is storing every student accounts.
     """
-    # if course num does not exists.
+    # if course number does not exists.
     if tutoring_sessions.get(course_num) is None:
-        course_num = await send_courses_reaction_message(ctx, course_num)
+        course_code = await send_courses_reaction_message(ctx, course_num)
+        course_num = course_code[-3:]
 
+    # validate course number.
     if course_num is None:
         return
 
