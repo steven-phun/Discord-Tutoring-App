@@ -355,7 +355,6 @@ async def push_current_student(ctx, student, tutor):
 
     DISCORD VOICE PERMISSIONS NEEDED:
         move members.
-
     removes the connect permission for tutor's voice channel.
     the student will only be moved their previous voice channel:
         if they are in the same voice channel as the tutor's.
