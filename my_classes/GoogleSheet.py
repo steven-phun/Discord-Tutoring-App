@@ -31,7 +31,7 @@ class GoogleSheet:
         excel = self.workbook.active
 
         # edit template with tutor's information.
-        excel_date_format = date.strftime(day, '%m/%d/%Y')
+        excel_date_format = date.strftime(day, '%m-%d-%Y')
         day_of_week = day_name[day.weekday()]
         excel['D10'].value = tutor.name  # cell represents the tutor's name.
         excel['D4'].value = tutor.course.code  # cell represents the course code.
