@@ -59,7 +59,7 @@ class Student:
             schedule = self.course.schedule
             tutor = schedule.tutor_name()
             if tutor is not None:
-                tutor.replace(' ', '+')
+                tutor = tutor.replace(' ', '+')
         else:
             # default tutor's name
             tutor = first_name.lower().capitalize()
