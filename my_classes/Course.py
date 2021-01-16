@@ -1,5 +1,3 @@
-import json
-from datetime import datetime
 from my_classes.Schedule import Schedule
 
 
