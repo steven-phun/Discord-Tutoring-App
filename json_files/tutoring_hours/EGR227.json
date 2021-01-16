@@ -1,15 +1,78 @@
 {
   "Monday": {
+    "Tutor3": {
+      "start_hour": 20,
+      "start_minute": 0,
+      "end_hour": 22,
+      "end_minute": 0,
+      "location": "Discord"
+    }
   },
   "Tuesday": {
+    "Tutor2": {
+      "start_hour": 16,
+      "start_minute": 0,
+      "end_hour": 18,
+      "end_minute": 0,
+      "location": "Discord"
+    }
   },
   "Wednesday": {
+    "Tutor2": {
+      "start_hour": 17,
+      "start_minute": 30,
+      "end_hour": 19,
+      "end_minute": 30,
+      "location": "Discord"
+    }
   },
   "Thursday": {
+    "Steven Phun": {
+      "start_hour": 16,
+      "start_minute": 0,
+      "end_hour": 23,
+      "end_minute": 0,
+      "location": "Discord"
+    },
+    "Tutor2": {
+      "start_hour": 20,
+      "start_minute": 0,
+      "end_hour": 22,
+      "end_minute": 0,
+      "location": "Discord"
+    }
   },
   "Friday": {
+    "Tutor1": {
+      "start_hour": 15,
+      "start_minute": 0,
+      "end_hour": 23,
+      "end_minute": 0,
+      "location": "Discord"
+    },
+    "Tutor2": {
+      "start_hour": 22,
+      "start_minute": 0,
+      "end_hour": 23,
+      "end_minute": 0,
+      "location": "Discord"
+    }
   },
   "Saturday": {
+    "Tutor1": {
+      "start_hour": 16,
+      "start_minute": 0,
+      "end_hour": 18,
+      "end_minute": 0,
+      "location": "Discord"
+    },
+    "Steven Phun": {
+      "start_hour": 21,
+      "start_minute": 0,
+      "end_hour": 23,
+      "end_minute": 0,
+      "location": "Discord"
+    }
   },
   "Sunday": {
   }

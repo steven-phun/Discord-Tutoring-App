@@ -27,10 +27,10 @@
     }
   },
   "Thursday": {
-    "Tutor1": {
+    "Steven Phun": {
       "start_hour": 16,
       "start_minute": 0,
-      "end_hour": 18,
+      "end_hour": 23,
       "end_minute": 0,
       "location": "Discord"
     },
@@ -46,7 +46,7 @@
     "Tutor1": {
       "start_hour": 15,
       "start_minute": 0,
-      "end_hour": 17,
+      "end_hour": 23,
       "end_minute": 0,
       "location": "Discord"
     },
@@ -66,10 +66,10 @@
       "end_minute": 0,
       "location": "Discord"
     },
-    "Tutor2": {
-      "start_hour": 20,
+    "Steven Phun": {
+      "start_hour": 21,
       "start_minute": 0,
-      "end_hour": 22,
+      "end_hour": 23,
       "end_minute": 0,
       "location": "Discord"
     }
