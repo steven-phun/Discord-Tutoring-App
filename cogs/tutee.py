@@ -36,11 +36,11 @@ class Tutee(commands.Cog):
 
         # send student their custom sign-in link.
         if arg.lower() == 'hi':
-            return await sign_in(ctx, arg2, tutoring_accounts)
+            return await sign_in(ctx, arg2, arg3, tutoring_accounts)
 
         # set up a student's tutoring account.
         if arg.lower() == 'set':
-            return await setup_account(ctx, tutoring_accounts, arg2, arg3, arg4, arg5, arg6)
+            return await setup_account(ctx, tutoring_accounts, arg2, arg3, arg4, arg5)
 
         # display the tutoring information for given course code.
         if arg.lower() == 'hours':
@@ -63,7 +63,7 @@ class Tutee(commands.Cog):
             return await generate_private_voice_channel(ctx, [arg2, arg3, arg4, arg5, arg6])
 
 
-async def setup_account(ctx, accounts, first=None, last=None, student_id=None, code=None, degree=None):
+async def setup_account(ctx, accounts, first=None, last=None, student_id=None, degree='Trad'):
     """store the student's information in a dictionary.
 
     student's information will be encrypted and used for auto filling sign-in sheet.
@@ -84,29 +84,21 @@ async def setup_account(ctx, accounts, first=None, last=None, student_id=None, c
     :param str first: the student's first name.
     :param str last: the student's last name.
     :param str student_id: the student's student id.
-    :param str code: the course code that the student is in tutoring for.
     :param str degree: the student's program degree.
     :param [] accounts: the array of str that represents the student information.
     """
     # print error message.
-    if None in (first, last, student_id, code, degree):
+    if None in (first, last, student_id):
         return await send_embed(ctx, title=get_student_accounts_title(), text='*missing fields.*')
 
     # delete command message.
     if str(ctx.channel.type) == 'text':
         await ctx.message.delete()
 
-    # display reaction message.
-    course_code = await send_courses_reaction_message(ctx, code)
-
-    # validate student's course code.
-    if course_code is None:
-        return
-
     # generate a student object.
     first_name = first.lower().capitalize()
     last_name = last.lower().capitalize()
-    student = Student(ctx, first_name, last_name, student_id, course_code, degree, ctx.author.id)
+    student = Student(ctx, first_name, last_name, student_id, degree, ctx.author.id)
 
     # add student object to student accounts.
     accounts[ctx.author.id] = student
@@ -193,7 +185,7 @@ async def add_student_to_queue(ctx, sessions, accounts):
     await display_queue(ctx, course)
 
 
-async def sign_in(ctx, first_name, student_accounts):
+async def sign_in(ctx, course_num, tutor_name, student_accounts):
     """send student their custom sign-in sheet to submit.
 
     student's custom sign-in sheet link will be sent
@@ -207,10 +199,22 @@ async def sign_in(ctx, first_name, student_accounts):
     Parameters
     ----------
     :param Context ctx: the current Context.
-    :param str first_name: the str that represents the tutor's first name.
+    :param str course_num: the str that represents the course code.
+    :param str tutor_name: the str that represents the tutor's first name.
     :param dict student_accounts: the dictionary that is storing every student accounts.
     """
+    # if course num does not exists.
+    if tutoring_sessions.get(course_num) is None:
+        course_num = await send_courses_reaction_message(ctx, course_num)
+
+    if course_num is None:
+        return
+
+    # get the student object.
     student = student_accounts.get(ctx.author.id)
+
+    # set student's course code.
+    student.course = tutoring_sessions.get(course_num)
 
     # verify if student sign-in.
     verify = await send_is_verified(ctx, student)
@@ -222,7 +226,7 @@ async def sign_in(ctx, first_name, student_accounts):
 
     # send student their custom sign-in link.
     await send_embed(user=student.ctx.discord_id(), title=get_student_accounts_title(),
-                     text=f'your sign-in sheet [click here]({await student.sign_in(first_name)}).')
+                     text=f'your sign-in sheet [click here]({await student.sign_in(tutor_name)}).')
 
 
 async def send_is_verified(ctx, student):
