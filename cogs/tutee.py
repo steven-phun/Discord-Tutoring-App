@@ -62,7 +62,7 @@ class Tutee(commands.Cog):
             return await generate_private_voice_channel(ctx, [arg2, arg3, arg4, arg5])
 
 
-async def setup_account(ctx, accounts, first=None, last=None, student_id=None, degree='Trad'):
+async def setup_account(ctx, accounts, first=None, last=None, student_id=None, degree=None):
     """store the student's information in a dictionary.
 
     student's information will be encrypted and used for auto filling sign-in sheet.
@@ -97,6 +97,8 @@ async def setup_account(ctx, accounts, first=None, last=None, student_id=None, d
     # generate a student object.
     first_name = first.lower().capitalize()
     last_name = last.lower().capitalize()
+    if degree is None:
+        degree = 'Trad'
     student = Student(ctx, first_name, last_name, student_id, degree, ctx.author.id)
 
     # add student object to student accounts.
@@ -169,15 +171,19 @@ async def add_student_to_queue(ctx, sessions, accounts):
     """
     student = accounts.get(ctx.author.id)
 
+    # display an error message if student did not sign in.
+    if student.course is None:
+        return await send_embed(ctx, text=student.error_msg())
+
     # verify if student sign-in.
     verify = await send_is_verified(ctx, student)
 
     # display error message.
     if verify is False:
-        return await send_embed(ctx, text=f'<@!{student.discord_id}> *need to sign-in.*')
+        return await send_embed(ctx, text=student.error_msg())
 
     # add student to the queue.
-    course = sessions[student.course_code[-3:]]
+    course = sessions[student.course.num()]
     course.append(student)
 
     # display updated queue.
@@ -268,6 +274,7 @@ async def remove_student_from_queue(ctx, sessions, accounts):
     :param Optional[Course] sessions: the dictionary that is storing every available tutoring session.
     :param dict accounts: the dictionary that is storing every student accounts.
     """
+    # get student object.
     student = accounts.get(ctx.author.id)
 
     # validate if student has set up a bot tutoring bot account.
@@ -275,9 +282,16 @@ async def remove_student_from_queue(ctx, sessions, accounts):
         embed = get_help_tutee_description()
         return await send_embed(ctx, embed)
 
+    # display an error message if student did not sign in.
+    if student.course is None:
+        return await send_embed(ctx, text=student.error_msg())
+
     # remove student from queue.
-    course = sessions[student.course_code[-3:]]
+    course = sessions[student.course.num()]
     course.remove(student)
+
+    # reset student's course.
+    student.course = None
 
     # display updated queue.
     await display_queue(ctx, course)
@@ -299,8 +313,12 @@ async def get_queue(ctx, sessions, accounts):
         embed = get_help_tutee_description()
         return await send_embed(ctx, embed)
 
+    # display an error message if student did not sign in.
+    if student.course is None:
+        return await send_embed(ctx, text=student.error_msg())
+
     # get queue.
-    course = sessions[student.course_num()]
+    course = sessions[student.course.num()]
     await display_queue(ctx, course, announcement=False)
 
 
