@@ -90,6 +90,10 @@ class Student:
 
                 return True
 
+    def course_error_msg(self):
+        """display the sign in error message when course is not assigned."""
+        return f'<@!{self.discord_id}> *need to sign-in.*'
+
     def name(self):
         """:return: str of the student's first and last name."""
         return f'{self.first} {self.last}'
