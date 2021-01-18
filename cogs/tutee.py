@@ -171,16 +171,16 @@ async def add_student_to_queue(ctx, sessions, accounts):
     """
     student = accounts.get(ctx.author.id)
 
-    # display an error message if student did not sign in.
+    # display an error message if student's course is not not assigned.
     if student.course is None:
-        return await send_embed(ctx, text=student.error_msg())
+        return await send_embed(ctx, text=student.course_error_msg())
 
     # verify if student sign-in.
     verify = await send_is_verified(ctx, student)
 
-    # display error message.
+    # display error message did not sign in.
     if verify is False:
-        return await send_embed(ctx, text=student.error_msg())
+        return await send_embed(ctx, text=student.course_error_msg())
 
     # add student to the queue.
     course = sessions[student.course.num()]
@@ -284,7 +284,7 @@ async def remove_student_from_queue(ctx, sessions, accounts):
 
     # display an error message if student did not sign in.
     if student.course is None:
-        return await send_embed(ctx, text=student.error_msg())
+        return await send_embed(ctx, text=student.course_error_msg())
 
     # remove student from queue.
     course = sessions[student.course.num()]
@@ -315,7 +315,7 @@ async def get_queue(ctx, sessions, accounts):
 
     # display an error message if student did not sign in.
     if student.course is None:
-        return await send_embed(ctx, text=student.error_msg())
+        return await send_embed(ctx, text=student.course_error_msg())
 
     # get queue.
     course = sessions[student.course.num()]
